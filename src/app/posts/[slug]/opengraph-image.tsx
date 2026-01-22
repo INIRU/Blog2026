@@ -1,8 +1,6 @@
 import { ImageResponse } from 'next/og';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 export const alt = 'Post thumbnail';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
@@ -43,18 +41,21 @@ export default async function Image({ params }: { params: Promise<{ slug: string
       })
     : '';
 
-  const [fontBoldRes, fontRegularRes, characterImage] = await Promise.all([
+  const siteUrl = 'https://blog.iniru.xyz';
+
+  const [fontBoldRes, fontRegularRes, characterRes] = await Promise.all([
     fetch('https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-kr@latest/korean-700-normal.ttf'),
     fetch('https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-kr@latest/korean-400-normal.ttf'),
-    readFile(join(process.cwd(), 'public', 'INIRU.png')),
+    fetch(`${siteUrl}/INIRU.png`),
   ]);
 
-  const [fontBoldData, fontRegularData] = await Promise.all([
+  const [fontBoldData, fontRegularData, characterData] = await Promise.all([
     fontBoldRes.arrayBuffer(),
     fontRegularRes.arrayBuffer(),
+    characterRes.arrayBuffer(),
   ]);
 
-  const characterBase64 = `data:image/png;base64,${characterImage.toString('base64')}`;
+  const characterBase64 = `data:image/png;base64,${Buffer.from(characterData).toString('base64')}`;
 
   return new ImageResponse(
     (
