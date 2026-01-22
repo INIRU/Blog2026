@@ -46,7 +46,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const [fontBoldRes, fontRegularRes, characterRes] = await Promise.all([
     fetch('https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-kr@latest/korean-700-normal.ttf'),
     fetch('https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-kr@latest/korean-400-normal.ttf'),
-    fetch(`${siteUrl}/INIRU.png`),
+    fetch(`${siteUrl}/iniru.png`),
   ]);
 
   const [fontBoldData, fontRegularData, characterData] = await Promise.all([
