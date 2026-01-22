@@ -1,0 +1,41 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.article {
+  margin-bottom: 4rem;
+}
+
+.contentWrapper {
+  display: flex;
+  gap: 3rem;
+  position: relative;
+}
+
+@media (max-width: 1024px) {
+  .contentWrapper {
+    flex-direction: column;
+  }
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 100px;
+  height: fit-content;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    display: none;
+  }
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  max-width: 800px;
+}

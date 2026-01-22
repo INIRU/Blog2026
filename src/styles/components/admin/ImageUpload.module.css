@@ -1,0 +1,188 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dropzone {
+  position: relative;
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: var(--bg-secondary);
+}
+
+.dropzone:hover {
+  border-color: var(--color-primary);
+}
+
+.dropzone.active {
+  border-color: var(--color-primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.dropzone.hasImage {
+  border-style: solid;
+}
+
+.input {
+  display: none;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.placeholderIcon {
+  width: 40px;
+  height: 40px;
+  opacity: 0.5;
+}
+
+.hint {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.uploading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--color-primary);
+  font-size: 0.875rem;
+}
+
+.uploadingIcon {
+  width: 40px;
+  height: 40px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.preview {
+  position: absolute;
+  inset: 0;
+}
+
+.previewImage {
+  object-fit: cover;
+}
+
+.removeButton {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.removeButton:hover {
+  background: rgba(239, 68, 68, 0.9);
+}
+
+.removeButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.insertButton {
+  padding: 0.5rem 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.insertButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+
+
+.changeButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.changeButton:hover {
+  background: rgba(59, 130, 246, 0.9);
+}
+
+.changeButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cropperWrapper {
+  position: relative;
+}
+
+.skipCropButton {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.5rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  z-index: 3001;
+  transition: all 0.2s ease;
+}
+
+.skipCropButton:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: translateX(-50%) translateY(-2px);
+}

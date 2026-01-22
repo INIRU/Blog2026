@@ -1,0 +1,459 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 180px);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  transition: color 0.2s ease;
+}
+
+.backLink:hover {
+  color: var(--color-primary);
+}
+
+.backLink svg {
+  width: 16px;
+  height: 16px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.previewButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.625rem 1rem;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.previewButton:hover {
+  border-color: var(--text-tertiary);
+  color: var(--text-primary);
+}
+
+.previewButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.publishToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.publishToggle:has(input:checked) {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.publishToggle input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.saveButton {
+  padding: 0.625rem 1.25rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  gap: 2rem;
+}
+
+.editPane,
+.previewPane {
+  flex: 1;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .editPane,
+  .previewPane {
+    display: block !important;
+  }
+  
+  .previewPane {
+    border-left: 1px solid var(--border-color);
+    padding-left: 2rem;
+  }
+}
+
+.titleInput {
+  width: 100%;
+  padding: 0;
+  margin-bottom: 1.5rem;
+  border: none;
+  background: transparent;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.titleInput::placeholder {
+  color: var(--text-tertiary);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input {
+  padding: 0.625rem 0.875rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.contentField {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+.toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toolbar button:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-color);
+  margin: 0 0.25rem;
+}
+
+.imageButton {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem !important;
+}
+
+.imageButton svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.textarea {
+  flex: 1;
+  min-height: 400px;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0 0 8px 8px;
+  font-size: 0.9375rem;
+  font-family: var(--font-mono);
+  line-height: 1.7;
+  color: var(--text-primary);
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+.previewContent {
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  min-height: 400px;
+}
+
+.previewTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.previewEmpty {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.copyLinkButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.625rem 1rem;
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copyLinkButton:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.copyLinkButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.imageManagerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.625rem 1rem;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.imageManagerButton:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.imageManagerButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.imageManager {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.imageManagerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.imageManagerHeader h4 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.closeManager {
+  padding: 0.375rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.closeManager:hover {
+  border-color: var(--text-tertiary);
+  color: var(--text-secondary);
+}
+
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.imageItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.imagePreview {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.imageThumb {
+  object-fit: cover;
+}
+
+.deleteImageButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #ef4444;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteImageButton:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+}
+
+.deleteImageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deleteImageButton svg {
+  width: 12px;
+  height: 12px;
+}

@@ -1,0 +1,49 @@
+.button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button:hover:not(:disabled) {
+  border-color: #f43f5e;
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.05);
+}
+
+.button:disabled {
+  cursor: default;
+}
+
+.button.liked {
+  border-color: #f43f5e;
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.1);
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+}
+
+.button.liked .icon {
+  color: #f43f5e;
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,41 @@
+.button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.button.bookmarked {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+}
+
+.button.bookmarked .icon {
+  color: #f59e0b;
+}
