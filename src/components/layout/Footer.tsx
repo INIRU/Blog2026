@@ -23,6 +23,7 @@ export function Footer() {
               <h4 className={styles.linkGroupTitle}>Navigation</h4>
               <Link href="/" className={styles.link}>Home</Link>
               <Link href="/posts" className={styles.link}>Posts</Link>
+              <Link href="/series" className={styles.link}>Series</Link>
               <Link href="/tags" className={styles.link}>Tags</Link>
             </div>
 
