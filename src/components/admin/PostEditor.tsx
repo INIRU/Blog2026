@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase/client';
 import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer';
 import { ImageUpload } from './ImageUpload';
 import { useToast } from '@/components/ui/Toast';
@@ -39,6 +40,7 @@ export function PostEditor({ post, onSave, isSaving }: PostEditorProps) {
   const [published, setPublished] = useState(post?.published ?? false);
   const [seriesName, setSeriesName] = useState(post?.series_name ?? '');
   const [seriesOrder, setSeriesOrder] = useState<string>(post?.series_order?.toString() ?? '');
+  const [seriesList, setSeriesList] = useState<string[]>([]);
   const [isPreview, setIsPreview] = useState(false);
   const [showImageManager, setShowImageManager] = useState(false);
   
@@ -55,6 +57,44 @@ export function PostEditor({ post, onSave, isSaving }: PostEditorProps) {
   } = useMarkdownEditor({ content, setContent, showToast });
 
   const contentImages = useMemo(() => extractImagesFromMarkdown(content), [content]);
+
+  useEffect(() => {
+    const fetchSeries = async () => {
+      const { data } = await supabase
+        .from('posts')
+        .select('series_name')
+        .not('series_name', 'is', null);
+      
+      if (data) {
+        const uniqueSeries = Array.from(new Set(data.map(p => p.series_name!))).sort();
+        setSeriesList(uniqueSeries);
+      }
+    };
+    fetchSeries();
+  }, []);
+
+  useEffect(() => {
+    const fetchNextOrder = async () => {
+      if (!seriesName || !seriesList.includes(seriesName) || seriesOrder) return;
+
+      const { data } = await supabase
+        .from('posts')
+        .select('series_order')
+        .eq('series_name', seriesName)
+        .order('series_order', { ascending: false })
+        .limit(1)
+        .single();
+        
+      if (data) {
+        setSeriesOrder(String((data.series_order || 0) + 1));
+      } else {
+        setSeriesOrder('1');
+      }
+    };
+    
+    const timer = setTimeout(fetchNextOrder, 500);
+    return () => clearTimeout(timer);
+  }, [seriesName, seriesList, seriesOrder]);
 
   useEffect(() => {
     if (!post && title && !slug) {
@@ -227,11 +267,17 @@ export function PostEditor({ post, onSave, isSaving }: PostEditorProps) {
               <label className={styles.label}>시리즈 이름</label>
               <input
                 type="text"
+                list="series-list"
                 value={seriesName}
                 onChange={(e) => setSeriesName(e.target.value)}
                 placeholder="예: React 시작하기"
                 className={styles.input}
               />
+              <datalist id="series-list">
+                {seriesList.map((series) => (
+                  <option key={series} value={series} />
+                ))}
+              </datalist>
             </div>
 
             <div className={styles.field}>
