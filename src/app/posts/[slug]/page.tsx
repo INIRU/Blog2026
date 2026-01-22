@@ -115,15 +115,11 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       modifiedTime: post.updated_at,
       authors: ['INIRU'],
       tags: post.tags,
-      images: post.thumbnail_url 
-        ? [{ url: post.thumbnail_url, width: 1200, height: 630, alt: post.title }]
-        : [],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.excerpt || `${post.title} - INIRU Blog`,
-      images: post.thumbnail_url ? [post.thumbnail_url] : [],
     },
     alternates: {
       canonical: url,
