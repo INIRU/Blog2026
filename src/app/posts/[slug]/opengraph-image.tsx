@@ -1,23 +1,36 @@
 import { ImageResponse } from 'next/og';
-import { createServerClient } from '@/lib/supabase/server';
 
 export const runtime = 'edge';
 export const alt = 'Post thumbnail';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
+async function getPost(slug: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) return null;
+
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/posts?slug=eq.${slug}&published=eq.true&select=title,excerpt,tags,published_at`,
+    {
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+      },
+    }
+  );
+
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data?.[0] || null;
+}
+
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  
-  const supabase = createServerClient();
-  const { data: post } = await supabase
-    .from('posts')
-    .select('title, excerpt, tags, published_at')
-    .eq('slug', slug)
-    .eq('published', true)
-    .single();
+  const post = await getPost(slug);
 
-  const title = post?.title || 'Post Not Found';
+  const title = post?.title || 'INIRU Blog';
   const excerpt = post?.excerpt || '';
   const tags = post?.tags?.slice(0, 3) || [];
   const date = post?.published_at
@@ -39,41 +52,33 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           justifyContent: 'space-between',
           padding: '60px',
           background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
+          fontFamily: 'system-ui, sans-serif',
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div
             style={{
-              fontSize: '56px',
-              fontWeight: 800,
+              fontSize: '52px',
+              fontWeight: 700,
               color: '#ffffff',
-              lineHeight: 1.2,
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              lineHeight: 1.3,
+              wordBreak: 'keep-all',
               maxWidth: '1000px',
             }}
           >
-            {title}
+            {title.length > 60 ? title.slice(0, 60) + '...' : title}
           </div>
-          
+
           {excerpt && (
             <div
               style={{
                 fontSize: '24px',
-                color: '#a0aec0',
+                color: '#94a3b8',
                 lineHeight: 1.5,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
                 maxWidth: '900px',
               }}
             >
-              {excerpt}
+              {excerpt.length > 100 ? excerpt.slice(0, 100) + '...' : excerpt}
             </div>
           )}
         </div>
@@ -85,14 +90,14 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {tags.map((tag) => (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {tags.map((tag: string) => (
               <div
                 key={tag}
                 style={{
                   padding: '8px 16px',
-                  background: 'rgba(99, 102, 241, 0.3)',
-                  borderRadius: '9999px',
+                  background: 'rgba(99, 102, 241, 0.25)',
+                  borderRadius: '20px',
                   fontSize: '18px',
                   color: '#a5b4fc',
                 }}
@@ -110,15 +115,15 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             }}
           >
             {date && (
-              <div style={{ fontSize: '20px', color: '#718096' }}>
+              <div style={{ fontSize: '18px', color: '#64748b' }}>
                 {date}
               </div>
             )}
             <div
               style={{
-                fontSize: '28px',
+                fontSize: '24px',
                 fontWeight: 700,
-                color: '#6366f1',
+                color: '#818cf8',
               }}
             >
               INIRU Blog
