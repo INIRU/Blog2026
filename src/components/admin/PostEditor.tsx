@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer';
 import { ImageUpload } from './ImageUpload';
-import { extractImagesFromMarkdown, deleteImageByUrl, uploadImage } from '@/lib/storage';
 import { useToast } from '@/components/ui/Toast';
 import type { Post } from '@/lib/supabase/database.types';
-import { HiArrowLeft, HiEye, HiCode, HiTrash, HiPhotograph, HiLink, HiClipboardCopy } from 'react-icons/hi';
-import { HiBold, HiItalic, HiListBullet, HiCodeBracket, HiPhoto, HiMinus } from 'react-icons/hi2';
+import { HiArrowLeft, HiEye, HiCode, HiPhotograph, HiClipboardCopy } from 'react-icons/hi';
 import styles from '@/styles/components/admin/PostEditor.module.css';
+import { extractImagesFromMarkdown } from '@/lib/markdown';
+import { ImageManager } from './ImageManager';
+import { MarkdownToolbar, MarkdownAction } from './MarkdownToolbar';
+import { useMarkdownEditor } from '@/hooks/useMarkdownEditor';
 
 interface PostEditorProps {
   post?: Post;
@@ -40,11 +41,18 @@ export function PostEditor({ post, onSave, isSaving }: PostEditorProps) {
   const [seriesOrder, setSeriesOrder] = useState<string>(post?.series_order?.toString() ?? '');
   const [isPreview, setIsPreview] = useState(false);
   const [showImageManager, setShowImageManager] = useState(false);
-  const [deletingImage, setDeletingImage] = useState<string | null>(null);
-  const [isUploadingContent, setIsUploadingContent] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const contentImageInputRef = useRef<HTMLInputElement>(null);
+  
   const { showToast } = useToast();
+
+  const {
+    textareaRef,
+    isUploadingContent,
+    deletingImage,
+    insertMarkdown,
+    insertImageToContent,
+    handleContentImageUpload,
+    handleDeleteContentImage,
+  } = useMarkdownEditor({ content, setContent, showToast });
 
   const contentImages = useMemo(() => extractImagesFromMarkdown(content), [content]);
 
@@ -85,103 +93,16 @@ export function PostEditor({ post, onSave, isSaving }: PostEditorProps) {
     });
   };
 
-  const insertImageToContent = (url: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const markdown = `![image](${url})`;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const newContent = content.substring(0, start) + markdown + content.substring(end);
-    
-    setContent(newContent);
-    
-    setTimeout(() => {
-      textarea.focus();
-      const newPosition = start + markdown.length;
-      textarea.setSelectionRange(newPosition, newPosition);
-    }, 0);
-  };
-
-  const handleDeleteContentImage = async (imageUrl: string) => {
-    setDeletingImage(imageUrl);
-    
-    const result = await deleteImageByUrl(imageUrl);
-    
-    const escapedUrl = imageUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const imageRegex = new RegExp(`!\\[[^\\]]*\\]\\(${escapedUrl}\\)\\n?`, 'g');
-    const newContent = content.replace(imageRegex, '');
-    setContent(newContent);
-    
-    setDeletingImage(null);
-    
-    if (result.success) {
-      showToast('이미지가 삭제되었습니다.', 'success');
-    } else {
-      showToast('본문에서 제거되었습니다.', 'info');
+  const handleToolbarAction = (action: MarkdownAction) => {
+    switch (action) {
+      case 'bold': insertMarkdown('**', '**', '굵은 텍스트'); break;
+      case 'italic': insertMarkdown('*', '*', '기울임 텍스트'); break;
+      case 'link': insertMarkdown('[', '](url)', '링크 텍스트'); break;
+      case 'code': insertMarkdown('`', '`', '코드'); break;
+      case 'codeBlock': insertMarkdown('\n```\n', '\n```\n', '코드 블록'); break;
+      case 'list': insertMarkdown('\n- ', '', '목록 항목'); break;
+      case 'hr': insertMarkdown('\n---\n', '', ''); break;
     }
-  };
-
-  const handleContentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 20 * 1024 * 1024) {
-      showToast('파일 크기는 20MB 이하여야 합니다.', 'error');
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      showToast('이미지 파일만 업로드할 수 있습니다.', 'error');
-      return;
-    }
-
-    setIsUploadingContent(true);
-    showToast('이미지 업로드 중...', 'info');
-
-    const result = await uploadImage(file);
-
-    setIsUploadingContent(false);
-
-    if (result.success && result.url) {
-      insertImageToContent(result.url);
-      showToast('이미지가 삽입되었습니다.', 'success');
-    } else {
-      showToast(result.error || '업로드에 실패했습니다.', 'error');
-    }
-
-    if (contentImageInputRef.current) {
-      contentImageInputRef.current.value = '';
-    }
-  };
-
-  const insertMarkdown = (before: string, after: string = '', placeholder: string = '') => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end) || placeholder;
-    const newContent = content.substring(0, start) + before + selectedText + after + content.substring(end);
-    
-    setContent(newContent);
-    
-    setTimeout(() => {
-      textarea.focus();
-      const newStart = start + before.length;
-      const newEnd = newStart + selectedText.length;
-      textarea.setSelectionRange(newStart, newEnd);
-    }, 0);
-  };
-
-  const toolbarActions = {
-    bold: () => insertMarkdown('**', '**', '굵은 텍스트'),
-    italic: () => insertMarkdown('*', '*', '기울임 텍스트'),
-    link: () => insertMarkdown('[', '](url)', '링크 텍스트'),
-    code: () => insertMarkdown('`', '`', '코드'),
-    codeBlock: () => insertMarkdown('\n```\n', '\n```\n', '코드 블록'),
-    list: () => insertMarkdown('\n- ', '', '목록 항목'),
-    hr: () => insertMarkdown('\n---\n', '', ''),
   };
 
   const copyPreviewLink = () => {
@@ -192,7 +113,7 @@ export function PostEditor({ post, onSave, isSaving }: PostEditorProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.editor}>
+    <div className={styles.editor}>
       <div className={styles.header}>
         <Link href="/admin" className={styles.backLink}>
           <HiArrowLeft />
@@ -236,54 +157,24 @@ export function PostEditor({ post, onSave, isSaving }: PostEditorProps) {
             />
             <span>발행</span>
           </label>
-          <button type="submit" className={styles.saveButton} disabled={isSaving}>
+          <button 
+            type="button" 
+            className={styles.saveButton} 
+            disabled={isSaving}
+            onClick={(e) => handleSubmit(e as any)}
+          >
             {isSaving ? '저장 중...' : post ? '수정' : '저장'}
           </button>
         </div>
       </div>
 
       {showImageManager && contentImages.length > 0 && (
-        <div className={styles.imageManager}>
-          <div className={styles.imageManagerHeader}>
-            <h4>본문 이미지 관리</h4>
-            <button
-              type="button"
-              className={styles.closeManager}
-              onClick={() => setShowImageManager(false)}
-            >
-              닫기
-            </button>
-          </div>
-          <div className={styles.imageGrid}>
-            {contentImages.map((url, index) => (
-              <div key={`${url}-${index}`} className={styles.imageItem}>
-                <div className={styles.imagePreview}>
-                  <Image
-                    src={url}
-                    alt={`Content image ${index + 1}`}
-                    fill
-                    className={styles.imageThumb}
-                  />
-                </div>
-                <button
-                  type="button"
-                  className={styles.deleteImageButton}
-                  onClick={() => handleDeleteContentImage(url)}
-                  disabled={deletingImage === url}
-                >
-                  {deletingImage === url ? (
-                    <span>삭제 중...</span>
-                  ) : (
-                    <>
-                      <HiTrash />
-                      <span>삭제</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+        <ImageManager
+          images={contentImages.map(img => img.src)}
+          deletingImage={deletingImage}
+          onDelete={handleDeleteContentImage}
+          onClose={() => setShowImageManager(false)}
+        />
       )}
 
       <div className={styles.main}>
@@ -367,48 +258,11 @@ export function PostEditor({ post, onSave, isSaving }: PostEditorProps) {
 
           <div className={styles.contentField}>
             <label className={styles.label}>내용 (Markdown)</label>
-            <div className={styles.toolbar}>
-              <button type="button" onClick={toolbarActions.bold} title="굵게 (Ctrl+B)">
-                <HiBold />
-              </button>
-              <button type="button" onClick={toolbarActions.italic} title="기울임 (Ctrl+I)">
-                <HiItalic />
-              </button>
-              <button type="button" onClick={toolbarActions.link} title="링크">
-                <HiLink />
-              </button>
-              <span className={styles.toolbarDivider} />
-              <button type="button" onClick={toolbarActions.code} title="인라인 코드">
-                <HiCodeBracket />
-              </button>
-              <button type="button" onClick={toolbarActions.codeBlock} title="코드 블록">
-                <HiCode />
-              </button>
-              <button type="button" onClick={toolbarActions.list} title="목록">
-                <HiListBullet />
-              </button>
-              <button type="button" onClick={toolbarActions.hr} title="구분선">
-                <HiMinus />
-              </button>
-              <span className={styles.toolbarDivider} />
-              <button
-                type="button"
-                onClick={() => contentImageInputRef.current?.click()}
-                disabled={isUploadingContent}
-                title="이미지 삽입"
-                className={styles.imageButton}
-              >
-                <HiPhoto />
-                {isUploadingContent ? '업로드 중...' : '이미지'}
-              </button>
-              <input
-                ref={contentImageInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleContentImageUpload}
-                style={{ display: 'none' }}
-              />
-            </div>
+            <MarkdownToolbar
+              onAction={handleToolbarAction}
+              onImageUpload={handleContentImageUpload}
+              isUploading={isUploadingContent}
+            />
             <textarea
               ref={textareaRef}
               value={content}
@@ -431,6 +285,6 @@ export function PostEditor({ post, onSave, isSaving }: PostEditorProps) {
           </div>
         </div>
       </div>
-    </form>
+    </div>
   );
 }

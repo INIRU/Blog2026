@@ -23,6 +23,7 @@
 .postsGrid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
+  grid-auto-rows: 450px;
   gap: 1.5rem;
   margin-top: 2rem;
 }

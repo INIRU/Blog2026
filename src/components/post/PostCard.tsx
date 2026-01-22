@@ -26,9 +26,9 @@ export function PostCard({ post }: PostCardProps) {
   const readingTime = estimateReadingTime(post.content);
 
   return (
-    <Link href={`/posts/${post.slug}`} className={styles.card}>
-      {post.thumbnail_url && (
-        <div className={styles.imageWrapper}>
+    <Link href={`/posts/${post.slug}`} className={styles.card}> 
+      <div className={styles.imageWrapper}>
+        {post.thumbnail_url ? (
           <Image
             src={post.thumbnail_url}
             alt={post.title}
@@ -36,8 +36,10 @@ export function PostCard({ post }: PostCardProps) {
             className={styles.image}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
-        </div>
-      )}
+        ) : (
+          <div className={styles.placeholder} />
+        )}
+      </div>
       
       <div className={styles.content}>
         {post.tags && post.tags.length > 0 && (
