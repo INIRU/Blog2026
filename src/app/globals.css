@@ -25,6 +25,10 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
+  --grad-1: rgba(99, 102, 241, 0.12);
+  --grad-2: rgba(168, 85, 247, 0.12);
+  --grad-3: rgba(56, 189, 248, 0.12);
 }
 
 html.dark {
@@ -47,6 +51,10 @@ html.dark {
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+
+  --grad-1: rgba(99, 102, 241, 0.15);
+  --grad-2: rgba(139, 92, 246, 0.1);
+  --grad-3: rgba(56, 189, 248, 0.1);
 }
 
 * {
@@ -58,15 +66,51 @@ html.dark {
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 100px;
+  background: var(--bg-primary);
 }
 
 body {
-  background: var(--bg-primary);
+  background: transparent;
   color: var(--text-primary);
   font-family: var(--font-sans);
   line-height: 1.7;
   min-height: 100vh;
   transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: -1;
+  background: radial-gradient(circle at center, var(--grad-1), transparent 50%);
+  opacity: 0.7;
+  animation: blob-bounce 15s infinite ease-in-out alternate;
+  pointer-events: none;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: -1;
+  background: radial-gradient(circle at center, var(--grad-2), transparent 50%);
+  opacity: 0.7;
+  animation: blob-bounce 15s infinite ease-in-out alternate-reverse;
+  pointer-events: none;
+}
+
+@keyframes blob-bounce {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(10%, 10%) scale(1.1); }
+  100% { transform: translate(-5%, -5%) scale(0.9); }
 }
 
 a {

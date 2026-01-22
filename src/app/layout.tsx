@@ -4,7 +4,6 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Providers } from './providers';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { FloatingCode } from '@/components/ui/FloatingCode';
 import './globals.css';
 
 const SITE_URL = 'https://blog.iniru.xyz';
@@ -116,7 +115,6 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <FloatingCode />
         <Providers>
           <div className="flex min-h-screen flex-col">
             <Header />
