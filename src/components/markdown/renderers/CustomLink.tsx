@@ -11,9 +11,10 @@ import styles from '@/styles/components/markdown/MarkdownRenderer.module.css';
 interface CustomLinkProps {
   children?: ReactNode;
   href?: string;
+  className?: string;
 }
 
-export function CustomLink({ children, href }: CustomLinkProps) {
+export function CustomLink({ children, href, className }: CustomLinkProps) {
   if (href) {
     const embed = parseEmbedUrl(href);
     if (embed) {
@@ -33,7 +34,7 @@ export function CustomLink({ children, href }: CustomLinkProps) {
   return (
     <a
       href={href}
-      className={styles.link}
+      className={className || styles.link}
       target={href?.startsWith('http') ? '_blank' : undefined}
       rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
     >
