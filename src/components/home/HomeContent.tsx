@@ -1,11 +1,16 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { PostCard } from '@/components/post/PostCard';
 import { HiArrowRight } from 'react-icons/hi';
 import type { Post } from '@/lib/supabase/database.types';
 import styles from '@/styles/pages/page.module.css';
+
+const FloatingCode = dynamic(() => import('@/components/ui/FloatingCode').then(mod => mod.FloatingCode), {
+  ssr: false,
+});
 
 interface HomeContentProps {
   recentPosts: Post[];
@@ -50,8 +55,10 @@ const cardVariants = {
 
 export function HomeContent({ recentPosts, popularTags }: HomeContentProps) {
   return (
-    <motion.div 
-      className={styles.container}
+    <>
+      <FloatingCode />
+      <motion.div 
+        className={styles.container}
       variants={containerVariants}
       initial="initial"
       animate="animate"
@@ -126,6 +133,8 @@ export function HomeContent({ recentPosts, popularTags }: HomeContentProps) {
           </motion.div>
         </motion.section>
       )}
-    </motion.div>
+      </motion.div>
+    </>
   );
 }
+
