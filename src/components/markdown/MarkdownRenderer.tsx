@@ -1,75 +1,60 @@
 'use client';
 
-import { ReactNode, useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import rehypeRaw from 'rehype-raw';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useTheme } from 'next-themes';
-import Image from 'next/image';
-import { HiClipboard, HiCheck } from 'react-icons/hi';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
-import {
-  GistEmbed,
-  CodeSandboxEmbed,
-  StackBlitzEmbed,
-  CodePenEmbed,
-  parseEmbedUrl,
-} from '@/components/markdown/CodeEmbed';
-import { CodeRunner } from '@/components/markdown/CodeRunner';
-import { LanguageIcon } from '@/components/markdown/LanguageIcon';
+import { useToast } from '@/components/ui/Toast';
 import styles from '@/styles/components/markdown/MarkdownRenderer.module.css';
-
-const RUNNABLE_LANGUAGES = ['javascript', 'js', 'typescript', 'ts'];
-
-interface CodeBlockProps {
-  inline?: boolean;
-  className?: string;
-  children?: ReactNode;
-}
-
-function CopyButton({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <button onClick={handleCopy} className={styles.copyButton} title="Copy code">
-      {copied ? <HiCheck /> : <HiClipboard />}
-    </button>
-  );
-}
+import { extractImagesFromMarkdown } from '@/lib/markdown';
+import { CodeBlock } from './renderers/CodeBlock';
+import { CustomImage } from './renderers/CustomImage';
+import { CustomLink } from './renderers/CustomLink';
 
 interface MarkdownRendererProps {
   content: string;
 }
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
-  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const { showToast } = useToast();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const isDark = mounted ? resolvedTheme === 'dark' : false;
+  const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const anchor = target.closest('a');
+
+    if (anchor && anchor.classList.contains(styles.anchor)) {
+      e.preventDefault();
+      const id = anchor.hash.substring(1);
+      const element = document.getElementById(id);
+
+      if (element) {
+        const url = `${window.location.origin}${window.location.pathname}#${id}`;
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('링크가 복사되었습니다.', 'success');
+        });
+
+        const yOffset = -100; 
+        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        window.history.pushState(null, '', `#${id}`);
+      }
+    }
+  };
 
   const images = useMemo(() => {
-    const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
-    const matches: { src: string; alt: string }[] = [];
-    let match;
-    while ((match = imgRegex.exec(content)) !== null) {
-      matches.push({ alt: match[1], src: match[2] });
-    }
-    return matches;
+    return extractImagesFromMarkdown(content);
   }, [content]);
 
   const openLightbox = (src: string) => {
@@ -80,69 +65,30 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
     }
   };
 
+  if (!mounted) {
+    return null;
+  }
+
   return (
-    <div className={styles.markdown}>
+    <div className={styles.markdown} onClick={handleContentClick}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkBreaks]}
-        rehypePlugins={[rehypeRaw]}
+        rehypePlugins={[
+          rehypeRaw, 
+          rehypeSlug, 
+          [rehypeAutolinkHeadings, {
+            behavior: 'prepend',
+            properties: {
+              className: [styles.anchor],
+              ariaHidden: true,
+              tabIndex: -1,
+            },
+            content: [],
+          }]
+        ]}
         components={{
-          code({ inline, className, children, ...props }: CodeBlockProps) {
-            const codeString = String(children).replace(/\n$/, '');
-            
-            if (inline || !className?.includes('language-')) {
-              return (
-                <code className={styles.inlineCode} {...props}>
-                  {children}
-                </code>
-              );
-            }
-
-            const match = /language-(\w+)(?::(.+))?/.exec(className || '');
-            const language = match ? match[1] : 'text';
-            const filename = match?.[2] || null;
-
-            if (RUNNABLE_LANGUAGES.includes(language.toLowerCase())) {
-              return <CodeRunner code={codeString} language={language} filename={filename} />;
-            }
-
-            return (
-              <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>
-                  <div className={styles.codeHeaderLeft}>
-                    <LanguageIcon language={language} size={16} />
-                    {filename ? (
-                      <span className={styles.filename}>{filename}</span>
-                    ) : (
-                      <span className={styles.language}>{language}</span>
-                    )}
-                  </div>
-                  <CopyButton code={codeString} />
-                </div>
-                <SyntaxHighlighter
-                  style={isDark ? oneDark : oneLight}
-                  language={language}
-                  PreTag="div"
-                  showLineNumbers
-                  customStyle={{
-                    margin: 0,
-                    padding: '1rem',
-                    borderRadius: '0 0 8px 8px',
-                    fontSize: '0.875rem',
-                    lineHeight: '1.7',
-                  }}
-                  lineNumberStyle={{
-                    minWidth: '2rem',
-                    paddingRight: '1rem',
-                    opacity: 0.5,
-                    userSelect: 'none',
-                  }}
-                >
-                  {codeString}
-                </SyntaxHighlighter>
-              </div>
-            );
-          },
-
+          code: CodeBlock,
+          
           h1: ({ children }) => <h1 className={styles.h1}>{children}</h1>,
           h2: ({ children }) => <h2 className={styles.h2}>{children}</h2>,
           h3: ({ children }) => <h3 className={styles.h3}>{children}</h3>,
@@ -158,56 +104,9 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           ol: ({ children }) => <ol className={styles.ol}>{children}</ol>,
           li: ({ children }) => <li className={styles.li}>{children}</li>,
 
-          a: ({ children, href }) => {
-            if (href) {
-              const embed = parseEmbedUrl(href);
-              if (embed) {
-                switch (embed.type) {
-                  case 'gist':
-                    return <GistEmbed username={embed.username} gistId={embed.id} file={embed.file} />;
-                  case 'codesandbox':
-                    return <CodeSandboxEmbed sandboxId={embed.id} />;
-                  case 'stackblitz':
-                    return <StackBlitzEmbed projectId={embed.id} />;
-                  case 'codepen':
-                    return <CodePenEmbed username={embed.username} penId={embed.id} />;
-                }
-              }
-            }
+          a: CustomLink,
 
-            return (
-              <a
-                href={href}
-                className={styles.link}
-                target={href?.startsWith('http') ? '_blank' : undefined}
-                rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-              >
-                {children}
-              </a>
-            );
-          },
-
-          img: ({ src, alt }) => {
-            const imgSrc = typeof src === 'string' ? src : '';
-            return (
-              <span
-                className={styles.imageWrapper}
-                onClick={() => imgSrc && openLightbox(imgSrc)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && imgSrc && openLightbox(imgSrc)}
-              >
-                <Image
-                  src={imgSrc}
-                  alt={alt || ''}
-                  width={800}
-                  height={450}
-                  className={styles.image}
-                  unoptimized={imgSrc.includes('supabase')}
-                />
-              </span>
-            );
-          },
+          img: (props) => <CustomImage {...props} onClick={openLightbox} />,
 
           hr: () => <hr className={styles.hr} />,
 

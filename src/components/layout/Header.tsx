@@ -11,6 +11,7 @@ import styles from '@/styles/components/layout/Header.module.css';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/posts', label: 'Posts' },
+  { href: '/series', label: 'Series' },
   { href: '/tags', label: 'Tags' },
 ];
 

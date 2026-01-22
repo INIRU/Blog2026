@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiChevronDown, HiListBullet } from 'react-icons/hi2';
+import Slugger from 'github-slugger';
 import styles from '@/styles/components/post/TableOfContents.module.css';
 
 interface TocItem {
@@ -21,21 +22,54 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const regex = /^(#{2,3})\s+(.+)$/gm;
-    const items: TocItem[] = [];
-    let match;
+    const slugger = new Slugger();
+    
+    const updateHeadings = () => {
+      const container = document.getElementById('markdown-content');
+      if (!container) return;
 
-    while ((match = regex.exec(content)) !== null) {
-      const level = match[1].length;
-      const text = match[2];
-      const id = text
-        .toLowerCase()
-        .replace(/[^a-z0-9가-힣\s]/g, '')
-        .replace(/\s+/g, '-');
-      items.push({ id, text, level });
+      const elements = container.querySelectorAll('h1, h2, h3');
+      slugger.reset();
+
+      const items: TocItem[] = Array.from(elements)
+        .map((element) => {
+          const text = element.textContent || '';
+          if (!element.id) {
+            element.id = slugger.slug(text);
+          }
+          
+          return {
+            id: element.id,
+            text,
+            level: Number(element.tagName.substring(1)),
+          };
+        })
+        .filter((item) => item.text.trim() !== '');
+
+      setHeadings(items);
+    };
+
+    updateHeadings();
+    
+    const timeoutId = setTimeout(updateHeadings, 100);
+    const intervalId = setInterval(updateHeadings, 500);
+
+    const cleanupTimeout = setTimeout(() => {
+      clearInterval(intervalId);
+    }, 2000);
+    
+    const observer = new MutationObserver(updateHeadings);
+    const container = document.getElementById('markdown-content');
+    if (container) {
+      observer.observe(container, { childList: true, subtree: true });
     }
 
-    setHeadings(items);
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+      clearTimeout(cleanupTimeout);
+    };
   }, [content]);
 
   useEffect(() => {
@@ -58,8 +92,21 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     return () => observer.disconnect();
   }, [headings]);
 
-  const handleLinkClick = () => {
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
     setIsOpen(false);
+    
+    const element = document.getElementById(id);
+    if (element) {
+      
+      const yOffset = -80; 
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      
+      window.scrollTo({ top: y, behavior: 'smooth' });
+      
+      window.history.pushState(null, '', `#${id}`);
+      setActiveId(id);
+    }
   };
 
   if (headings.length === 0) return null;
@@ -71,15 +118,26 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       <nav className={styles.toc}>
         <h4 className={styles.title}>목차</h4>
         <ul className={styles.list}>
-          {headings.map((heading) => (
+          {headings.map((heading, index) => (
             <li
-              key={heading.id}
+              key={`${heading.id}-${index}`}
               className={`${styles.item} ${
                 heading.level === 3 ? styles.nested : ''
               } ${activeId === heading.id ? styles.active : ''}`}
             >
-              <a href={`#${heading.id}`} className={styles.link}>
-                {heading.text}
+              <a 
+                href={`#${heading.id}`} 
+                className={styles.link}
+                onClick={(e) => handleLinkClick(e, heading.id)}
+              >
+                {activeId === heading.id && (
+                  <motion.span
+                    layoutId="activeIndicator"
+                    className={styles.activeIndicator}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  />
+                )}
+                <span className={styles.text}>{heading.text}</span>
               </a>
             </li>
           ))}
@@ -113,9 +171,9 @@ export function TableOfContents({ content }: TableOfContentsProps) {
               transition={{ duration: 0.2 }}
             >
               <ul className={styles.mobileList}>
-                {headings.map((heading) => (
+                {headings.map((heading, index) => (
                   <li
-                    key={heading.id}
+                    key={`${heading.id}-${index}`}
                     className={`${styles.mobileItem} ${
                       heading.level === 3 ? styles.nested : ''
                     } ${activeId === heading.id ? styles.active : ''}`}
@@ -123,7 +181,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
                     <a
                       href={`#${heading.id}`}
                       className={styles.mobileLink}
-                      onClick={handleLinkClick}
+                      onClick={(e) => handleLinkClick(e, heading.id)}
                     >
                       {heading.text}
                     </a>

@@ -1,13 +1,14 @@
 'use client';
 
-import { Suspense, useState, useEffect, useCallback, useRef } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/lib/supabase/client';
-import { PostCard } from '@/components/post/PostCard';
-import { HiSearch, HiClock } from 'react-icons/hi';
-import type { Post } from '@/lib/supabase/database.types';
+import { motion } from 'framer-motion';
+import { HiSearch } from 'react-icons/hi';
 import styles from '@/styles/pages/search/page.module.css';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useSearch, Suggestion } from '@/hooks/useSearch';
+import { SearchSuggestions } from '@/components/search/SearchSuggestions';
+import { SearchResults } from '@/components/search/SearchResults';
 
 const containerVariants = {
   initial: {},
@@ -27,45 +28,6 @@ const itemVariants = {
   },
 };
 
-const gridVariants = {
-  initial: {},
-  animate: {
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
-};
-
-const cardVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.4, ease: 'easeOut' }
-  },
-  exit: {
-    opacity: 0,
-    y: -10,
-    transition: { duration: 0.2 }
-  },
-};
-
-interface Suggestion {
-  slug: string;
-  title: string;
-}
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(handler);
-  }, [value, delay]);
-
-  return debouncedValue;
-}
-
 function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -73,53 +35,19 @@ function SearchContent() {
   const inputRef = useRef<HTMLInputElement>(null);
   
   const [query, setQuery] = useState(initialQuery);
-  const [results, setResults] = useState<Post[]>([]);
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
   const debouncedQuery = useDebounce(query, 300);
-
-  const search = useCallback(async (searchQuery: string) => {
-    if (!searchQuery.trim()) {
-      setResults([]);
-      setHasSearched(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setHasSearched(true);
-    setShowSuggestions(false);
-
-    const { data } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('published', true)
-      .or(`title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
-      .order('published_at', { ascending: false });
-
-    setResults(data ?? []);
-    setIsLoading(false);
-  }, []);
-
-  const fetchSuggestions = useCallback(async (searchQuery: string) => {
-    if (!searchQuery.trim() || searchQuery.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-
-    const { data } = await supabase
-      .from('posts')
-      .select('slug, title')
-      .eq('published', true)
-      .ilike('title', `%${searchQuery}%`)
-      .order('published_at', { ascending: false })
-      .limit(5);
-
-    setSuggestions(data ?? []);
-  }, []);
+  
+  const {
+    results,
+    suggestions,
+    isLoading,
+    hasSearched,
+    search,
+    fetchSuggestions,
+  } = useSearch();
 
   useEffect(() => {
     if (initialQuery) {
@@ -168,13 +96,11 @@ function SearchContent() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
-    setHasSearched(false);
     setSelectedIndex(-1);
     if (e.target.value.length >= 2) {
       setShowSuggestions(true);
     } else {
       setShowSuggestions(false);
-      setSuggestions([]);
     }
   };
 
@@ -212,85 +138,25 @@ function SearchContent() {
             autoFocus
             autoComplete="off"
           />
-          <AnimatePresence>
-            {showSuggestions && suggestions.length > 0 && (
-              <motion.ul
-                className={styles.suggestions}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-              >
-                {suggestions.map((suggestion, index) => (
-                  <li key={suggestion.slug}>
-                    <button
-                      type="button"
-                      className={`${styles.suggestionItem} ${index === selectedIndex ? styles.selected : ''}`}
-                      onMouseDown={() => handleSuggestionClick(suggestion)}
-                      onMouseEnter={() => setSelectedIndex(index)}
-                    >
-                      <HiClock className={styles.suggestionIcon} />
-                      <span>{suggestion.title}</span>
-                    </button>
-                  </li>
-                ))}
-              </motion.ul>
-            )}
-          </AnimatePresence>
+          <SearchSuggestions
+            suggestions={suggestions}
+            show={showSuggestions}
+            selectedIndex={selectedIndex}
+            onSelect={handleSuggestionClick}
+            onHover={setSelectedIndex}
+          />
         </div>
         <button type="submit" className={styles.searchButton}>
           검색
         </button>
       </motion.form>
 
-      <AnimatePresence mode="wait">
-        {isLoading ? (
-          <motion.div 
-            key="loading"
-            className={styles.loading}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            검색 중...
-          </motion.div>
-        ) : hasSearched ? (
-          results.length > 0 ? (
-            <motion.div
-              key="results"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.p className={styles.resultCount} variants={itemVariants}>
-                &quot;{initialQuery}&quot; 검색 결과 {results.length}개
-              </motion.p>
-              <motion.div 
-                className={styles.results}
-                variants={gridVariants}
-                initial="initial"
-                animate="animate"
-              >
-                {results.map((post) => (
-                  <motion.div key={post.id} variants={cardVariants}>
-                    <PostCard post={post} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            </motion.div>
-          ) : (
-            <motion.div 
-              key="empty"
-              className={styles.empty}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-            >
-              <p>&quot;{initialQuery}&quot;에 대한 검색 결과가 없습니다.</p>
-            </motion.div>
-          )
-        ) : null}
-      </AnimatePresence>
+      <SearchResults
+        results={results}
+        isLoading={isLoading}
+        hasSearched={hasSearched}
+        query={initialQuery}
+      />
     </motion.div>
   );
 }

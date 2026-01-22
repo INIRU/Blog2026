@@ -87,7 +87,9 @@ export function PostDetailContent({ post, relatedPosts, prevPost, nextPost, seri
           </aside>
           
           <div className={styles.content}>
-            <MarkdownRenderer content={post.content} />
+            <div id="markdown-content">
+              <MarkdownRenderer content={post.content} />
+            </div>
             {!isPreview && <PostActions post={post} />}
           </div>
         </motion.div>
