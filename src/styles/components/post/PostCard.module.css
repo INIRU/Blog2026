@@ -6,6 +6,8 @@
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s ease;
+  height: 100%;
+  width: 100%;
 }
 
 .card:hover {
@@ -30,8 +32,23 @@
   transform: scale(1.05);
 }
 
+.placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder::after {
+  content: '📝';
+  font-size: 2rem;
+  opacity: 0.5;
+}
+
 .content {
-  padding: 1.25rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -62,6 +79,7 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  min-height: 2.8em; /* 1.4em * 2 lines */
 }
 
 .excerpt {
