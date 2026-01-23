@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
@@ -25,6 +25,11 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const { showToast } = useToast();
+  const hasScrolledRef = useRef(false);
+
+  useEffect(() => {
+    hasScrolledRef.current = false;
+  }, [content]);
 
   const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
@@ -32,7 +37,8 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 
     if (anchor && anchor.classList.contains(styles.anchor)) {
       e.preventDefault();
-      const id = anchor.hash.substring(1);
+      const rawId = anchor.hash.substring(1);
+      const id = decodeURIComponent(rawId);
       const element = document.getElementById(id);
 
       if (element) {
@@ -49,6 +55,86 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
       }
     }
   };
+
+  const scrollToHash = useCallback((hash: string) => {
+    if (!hash) return;
+    const rawId = hash.substring(1);
+    const id = decodeURIComponent(rawId);
+    let attempts = 0;
+    const maxAttempts = 12;
+    const settleThreshold = 4;
+
+    const scrollToElement = (target: HTMLElement) => {
+      const yOffset = -80;
+      const y = target.getBoundingClientRect().top + window.scrollY + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+      hasScrolledRef.current = true;
+      return y;
+    };
+
+    const tryScroll = () => {
+      const element = document.getElementById(id);
+      if (element) {
+        const targetY = scrollToElement(element);
+        if (attempts < maxAttempts) {
+          attempts += 1;
+          window.setTimeout(() => {
+            const distance = Math.abs(window.scrollY - targetY);
+            if (distance > settleThreshold) {
+              tryScroll();
+            }
+          }, 120);
+        }
+        return;
+      }
+
+      if (attempts < maxAttempts) {
+        attempts += 1;
+        window.setTimeout(tryScroll, 100);
+      }
+    };
+
+    tryScroll();
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (typeof window === 'undefined') return;
+
+    scrollToHash(window.location.hash);
+  }, [mounted, content, scrollToHash]);
+
+  useEffect(() => {
+    if (!mounted || typeof window === 'undefined') return;
+
+    let attempts = 0;
+    const interval = window.setInterval(() => {
+      const hash = window.location.hash;
+      if (hash) {
+        scrollToHash(hash);
+        window.clearInterval(interval);
+        return;
+      }
+
+      attempts += 1;
+      if (attempts >= 10) {
+        window.clearInterval(interval);
+      }
+    }, 100);
+
+    return () => window.clearInterval(interval);
+  }, [mounted, content, scrollToHash]);
+
+  useEffect(() => {
+    if (!mounted || typeof window === 'undefined') return;
+
+    const onHashChange = () => {
+      scrollToHash(window.location.hash);
+    };
+
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [mounted, scrollToHash]);
 
   const images = useMemo(() => {
     return extractImagesFromMarkdown(content);

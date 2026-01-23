@@ -110,17 +110,14 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     if (!id) return;
     
     setOff();
-    
-    const element = document.getElementById(id);
-    if (element) {
-      const yOffset = -80; 
-      const y = element.getBoundingClientRect().top + window.scrollY + yOffset;
-      
-      window.scrollTo({ top: y, behavior: 'smooth' });
-      
-      window.history.pushState(null, '', `#${id}`);
-      setActiveId(id);
+
+    const nextHash = `#${encodeURIComponent(id)}`;
+    if (window.location.hash !== nextHash) {
+      window.history.pushState(null, '', nextHash);
     }
+
+    window.dispatchEvent(new Event('hashchange'));
+    setActiveId(id);
   };
 
   if (headings.length === 0) return null;
