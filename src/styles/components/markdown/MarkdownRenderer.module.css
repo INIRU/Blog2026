@@ -45,6 +45,8 @@
   font-size: 0.875em;
   font-family: var(--font-mono);
   color: var(--color-primary);
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .codeBlock {

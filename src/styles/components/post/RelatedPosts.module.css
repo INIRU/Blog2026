@@ -2,6 +2,9 @@
   padding: 2rem 0;
   border-top: 1px solid var(--border-color);
   margin-top: 3rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .title {
@@ -15,6 +18,9 @@
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 @media (min-width: 640px) {
@@ -31,6 +37,8 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   transition: all 0.2s ease;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .card:hover {
