@@ -9,7 +9,7 @@ interface InteractivePlaygroundProps {
   filename?: string;
 }
 
-export default function InteractivePlayground({ code, filename = 'App.js' }: InteractivePlaygroundProps) {
+function InteractivePlayground({ code, filename = 'App.js' }: InteractivePlaygroundProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
 
@@ -26,9 +26,10 @@ export default function InteractivePlayground({ code, filename = 'App.js' }: Int
           showInlineErrors: true,
           wrapContent: true,
           editorHeight: 400,
-          resizablePanels: true,
         }}
       />
     </div>
   );
 }
+
+export default InteractivePlayground;

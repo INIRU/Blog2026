@@ -1,5 +1,6 @@
-import { ReactNode, useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+'use client';
+
+import { ReactNode, useState, useEffect, lazy, Suspense } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from 'next-themes';
@@ -9,10 +10,7 @@ import { LanguageIcon } from '@/components/markdown/LanguageIcon';
 import styles from '@/styles/components/markdown/MarkdownRenderer.module.css';
 import { RUNNABLE_LANGUAGES } from '@/lib/markdown';
 
-const InteractivePlayground = dynamic(() => import('@/components/markdown/InteractivePlayground'), {
-  loading: () => <div className={styles.playgroundLoading}>Loading Playground...</div>,
-  ssr: false,
-});
+const InteractivePlayground = lazy(() => import('@/components/markdown/InteractivePlayground'));
 
 interface CodeBlockProps {
   inline?: boolean;
@@ -58,17 +56,26 @@ export function CodeBlock({ inline, className, children, ...props }: CodeBlockPr
 
   const match = /language-(\w+)(?::(.+))?/.exec(className || '');
   const language = match ? match[1] : 'text';
-  const filename = match?.[2] || null;
+  const metaParts = match?.[2]?.split(':') || [];
+  
+  const filename = metaParts.find(part => !['live', 'norun'].includes(part)) || null;
+  const isLive = metaParts.includes('live') || className?.includes('live');
+  const isNoRun = metaParts.includes('norun') || className?.includes('norun');
   
   const meta = props.node?.data?.meta || '';
-  const isLive = meta.includes('live') || className?.includes('live') || filename === 'live';
-
-  if (isLive && (language === 'jsx' || language === 'tsx' || language === 'js' || language === 'ts')) {
-    return <InteractivePlayground code={codeString} filename={filename && filename !== 'live' ? filename : 'App.js'} />;
+  
+  if (meta.includes('live') || (isLive && (language === 'jsx' || language === 'tsx' || language === 'js' || language === 'ts'))) {
+    return (
+      <Suspense fallback={<div className={styles.playgroundLoading}>Loading Playground...</div>}>
+        <InteractivePlayground code={codeString} filename={filename || 'App.js'} />
+      </Suspense>
+    );
   }
-
-  if (RUNNABLE_LANGUAGES.includes(language.toLowerCase())) {
-    return <CodeRunner code={codeString} language={language} filename={filename} />;
+  
+  if (!meta.includes('norun') && !isNoRun) {
+    if (RUNNABLE_LANGUAGES.includes(language.toLowerCase())) {
+      return <CodeRunner code={codeString} language={language} filename={filename} />;
+    }
   }
 
   return (

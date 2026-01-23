@@ -13,6 +13,7 @@ import { extractImagesFromMarkdown } from '@/lib/markdown';
 import { ImageManager } from './ImageManager';
 import { MarkdownToolbar, MarkdownAction } from './MarkdownToolbar';
 import { useMarkdownEditor } from '@/hooks/useMarkdownEditor';
+import { convert as romanize } from 'hangul-romanization';
 
 interface PostEditorProps {
   post?: Post;
@@ -98,11 +99,15 @@ export function PostEditor({ post, onSave, isSaving }: PostEditorProps) {
 
   useEffect(() => {
     if (!post && title && !slug) {
-      const generatedSlug = title
+      const romanized = romanize(title);
+      
+      const generatedSlug = romanized
         .toLowerCase()
-        .replace(/[^a-z0-9가-힣\s-]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
         .replace(/\s+/g, '-')
-        .replace(/-+/g, '-');
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      
       setSlug(generatedSlug);
     }
   }, [title, post, slug]);
