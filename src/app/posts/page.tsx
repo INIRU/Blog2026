@@ -19,10 +19,15 @@ export const metadata: Metadata = {
 };
 
 interface PostsPageProps {
-  searchParams: Promise<{ tag?: string; page?: string }>;
+  searchParams: Promise<{ 
+    tag?: string; 
+    page?: string;
+    q?: string;
+    sort?: string;
+  }>;
 }
 
-async function getPosts(tag?: string, page: number = 1) {
+async function getPosts(tag?: string, page: number = 1, searchQuery?: string, sort?: string) {
   const supabase = createServerClient();
   const perPage = 12;
   const offset = (page - 1) * perPage;
@@ -30,13 +35,30 @@ async function getPosts(tag?: string, page: number = 1) {
   let query = supabase
     .from('posts')
     .select('*', { count: 'exact' })
-    .eq('published', true)
-    .order('published_at', { ascending: false })
-    .range(offset, offset + perPage - 1);
+    .eq('published', true);
+
+  if (searchQuery) {
+    query = query.or(`title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%`);
+  }
 
   if (tag) {
     query = query.contains('tags', [tag]);
   }
+
+  switch (sort) {
+    case 'oldest':
+      query = query.order('published_at', { ascending: true });
+      break;
+    case 'popular':
+      query = query.order('view_count', { ascending: false });
+      break;
+    case 'latest':
+    default:
+      query = query.order('published_at', { ascending: false });
+      break;
+  }
+
+  query = query.range(offset, offset + perPage - 1);
 
   const { data, count } = await query;
   return { posts: data ?? [], total: count ?? 0, perPage };
@@ -63,9 +85,11 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   const params = await searchParams;
   const currentTag = params.tag;
   const currentPage = parseInt(params.page || '1', 10);
+  const searchQuery = params.q;
+  const sort = params.sort;
 
   const [{ posts, total, perPage }, allTags] = await Promise.all([
-    getPosts(currentTag, currentPage),
+    getPosts(currentTag, currentPage, searchQuery, sort),
     getAllTags(),
   ]);
 
@@ -79,6 +103,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
       currentPage={currentPage}
       currentTag={currentTag}
       allTags={allTags}
+      searchQuery={searchQuery}
     />
   );
 }

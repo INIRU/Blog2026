@@ -13,6 +13,7 @@ interface PostsContentProps {
   currentPage: number;
   currentTag?: string;
   allTags: string[];
+  searchQuery?: string;
 }
 
 const containerVariants = {
@@ -51,7 +52,17 @@ const cardVariants = {
   },
 };
 
-export function PostsContent({ posts, total, totalPages, currentPage, currentTag, allTags }: PostsContentProps) {
+export function PostsContent({ posts, total, totalPages, currentPage, currentTag, allTags, searchQuery }: PostsContentProps) {
+  const getDescription = () => {
+    if (searchQuery) {
+      return `"${searchQuery}" 검색 결과 ${total}개`;
+    }
+    if (currentTag) {
+      return `"${currentTag}" 태그가 포함된 글 ${total}개`;
+    }
+    return `총 ${total}개의 글`;
+  };
+
   return (
     <motion.div 
       className={styles.container}
@@ -62,9 +73,7 @@ export function PostsContent({ posts, total, totalPages, currentPage, currentTag
       <motion.div className={styles.header} variants={itemVariants}>
         <h1 className={styles.title}>Posts</h1>
         <p className={styles.description}>
-          {currentTag
-            ? `"${currentTag}" 태그가 포함된 글 ${total}개`
-            : `총 ${total}개의 글`}
+          {getDescription()}
         </p>
       </motion.div>
 
