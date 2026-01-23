@@ -2,22 +2,26 @@ import Image from 'next/image';
 import styles from '@/styles/components/markdown/MarkdownRenderer.module.css';
 
 interface CustomImageProps {
-  src?: any;
+  src?: string;
   alt?: string;
   onClick: (src: string) => void;
-  [key: string]: any;
+  title?: string;
+  width?: number;
+  height?: number;
 }
 
 export function CustomImage({ src, alt, onClick, ...props }: CustomImageProps) {
-  const imgSrc = typeof src === 'string' ? src : '';
+  const imgSrc = src || '';
+  
+  if (!imgSrc) return null;
   
   return (
     <span
       className={styles.imageWrapper}
-      onClick={() => imgSrc && onClick(imgSrc)}
+      onClick={() => onClick(imgSrc)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && imgSrc && onClick(imgSrc)}
+      onKeyDown={(e) => e.key === 'Enter' && onClick(imgSrc)}
     >
       <Image
         src={imgSrc}
@@ -25,7 +29,6 @@ export function CustomImage({ src, alt, onClick, ...props }: CustomImageProps) {
         width={800}
         height={450}
         className={styles.image}
-        unoptimized={imgSrc.includes('supabase')}
       />
     </span>
   );

@@ -55,16 +55,14 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       setHeadings(items);
     };
 
-    updateHeadings();
+    const timeoutId = requestAnimationFrame(() => {
+      updateHeadings();
+    });
     
-    const timeoutId = setTimeout(updateHeadings, 100);
-    const intervalId = setInterval(updateHeadings, 500);
-
-    const cleanupTimeout = setTimeout(() => {
-      clearInterval(intervalId);
-    }, 2000);
+    const observer = new MutationObserver(() => {
+      requestAnimationFrame(updateHeadings);
+    });
     
-    const observer = new MutationObserver(updateHeadings);
     const container = document.getElementById('markdown-content');
     if (container) {
       observer.observe(container, { childList: true, subtree: true });
@@ -72,9 +70,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
 
     return () => {
       observer.disconnect();
-      clearTimeout(timeoutId);
-      clearInterval(intervalId);
-      clearTimeout(cleanupTimeout);
+      cancelAnimationFrame(timeoutId);
     };
   }, [content]);
 

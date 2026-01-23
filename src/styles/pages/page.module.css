@@ -36,26 +36,16 @@
 }
 
 .primaryButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  composes: primaryButton from '@/styles/shared.module.css';
   padding: 0.875rem 1.75rem;
-  background: var(--color-primary);
-  color: white;
-  font-weight: 600;
-  font-size: 0.9375rem;
   border-radius: 10px;
-  transition: all 0.2s ease;
 }
 
 .primaryButton:hover {
-  background: var(--color-primary-hover);
   transform: translateY(-2px);
 }
 
 .primaryButton svg {
-  width: 18px;
-  height: 18px;
   transition: transform 0.2s ease;
 }
 
@@ -100,22 +90,9 @@
 }
 
 .postsGrid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
+  composes: postsGrid from '@/styles/shared.module.css';
   gap: 1.5rem;
   align-items: stretch;
-}
-
-@media (min-width: 640px) {
-  .postsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .postsGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 .emptyState {
