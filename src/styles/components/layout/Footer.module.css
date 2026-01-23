@@ -1,38 +1,42 @@
 .footer {
   margin-top: auto;
-  background: var(--bg-secondary);
+  background: var(--bg-card);
   border-top: 1px solid var(--border-color);
+  padding: 4rem 0 2rem;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 3rem 1.5rem 1.5rem;
+  padding: 0 1.5rem;
 }
 
 .content {
   display: flex;
   justify-content: space-between;
-  gap: 3rem;
-  margin-bottom: 2rem;
+  align-items: flex-start;
+  gap: 4rem;
+  margin-bottom: 4rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .content {
     flex-direction: column;
-    gap: 2rem;
+    gap: 3rem;
   }
 }
 
 .brand {
-  max-width: 300px;
+  max-width: 320px;
 }
 
 .logo {
-  font-size: 1.25rem;
-  font-weight: 700;
+  display: inline-block;
+  font-size: 1.5rem;
+  font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
 }
 
 .logoAccent {
@@ -40,19 +44,20 @@
 }
 
 .description {
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .links {
   display: flex;
-  gap: 4rem;
+  gap: 5rem;
 }
 
 @media (max-width: 640px) {
   .links {
+    width: 100%;
+    justify-content: space-between;
     gap: 2rem;
   }
 }
@@ -60,43 +65,46 @@
 .linkGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .linkGroupTitle {
   font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-tertiary);
+  font-weight: 700;
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .link {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  transition: color 0.2s ease;
+  gap: 0.625rem;
+  font-size: 0.9375rem;
+  color: var(--text-tertiary);
+  transition: all 0.2s ease;
 }
 
 .link:hover {
   color: var(--color-primary);
+  transform: translateX(2px);
 }
 
 .link svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 .bottom {
-  padding-top: 1.5rem;
+  padding-top: 2rem;
   border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .copyright {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-tertiary);
-  text-align: center;
 }
