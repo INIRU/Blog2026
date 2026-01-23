@@ -13,6 +13,7 @@ const navLinks = [
   { href: '/posts', label: 'Posts' },
   { href: '/series', label: 'Series' },
   { href: '/tags', label: 'Tags' },
+  { href: '/calendar', label: 'Calendar' },
 ];
 
 export function Header() {

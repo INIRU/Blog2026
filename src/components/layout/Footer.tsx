@@ -40,7 +40,7 @@ export function Footer() {
                 <FaGithub />
                 <span>GitHub</span>
               </a>
-              <a href="mailto:contact@iniru.xyz" className={styles.link}>
+              <a href="mailto:sellindev@icloud.com" className={styles.link}>
                 <FaEnvelope />
                 <span>Email</span>
               </a>

@@ -84,9 +84,9 @@ export function HomeContent({ recentPosts, popularTags }: HomeContentProps) {
             className={styles.postsGrid}
             variants={gridVariants}
           >
-            {recentPosts.map((post) => (
+            {recentPosts.map((post, index) => (
               <motion.div key={post.id} variants={cardVariants}>
-                <PostCard post={post} />
+                <PostCard post={post} priority={index < 2} />
               </motion.div>
             ))}
           </motion.div>

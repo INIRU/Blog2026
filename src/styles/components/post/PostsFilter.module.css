@@ -1,115 +1,12 @@
-.container {
-  margin-bottom: 2rem;
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border-color);
 }
 
-.topBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-@media (max-width: 640px) {
-  .topBar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-.searchWrapper {
-  position: relative;
-  flex: 1;
-  max-width: 400px;
-}
-
-.searchInput {
-  width: 100%;
-  padding: 0.75rem 2.5rem 0.75rem 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-size: 0.9375rem;
-  transition: all 0.2s ease;
-}
-
-.searchInput:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
-}
-
-.searchButton {
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  padding: 0.25rem;
-}
-
-.searchButton svg {
-  width: 20px;
-  height: 20px;
-}
-
-.searchButton:hover {
-  color: var(--color-primary);
-}
-
-.sortWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.sortIcon {
-  position: absolute;
-  left: 0.75rem;
-  width: 18px;
-  height: 18px;
-  color: var(--text-tertiary);
-  pointer-events: none;
-}
-
-.sortSelect {
-  padding: 0.75rem 2rem 0.75rem 2.25rem;
-  appearance: none;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.sortSelect:hover {
-  border-color: var(--text-tertiary);
-}
-
-.sortSelect:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.tagsWrapper {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.tagButton {
+.filterButton {
   padding: 0.5rem 1rem;
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -121,12 +18,12 @@
   transition: all 0.2s ease;
 }
 
-.tagButton:hover {
+.filterButton:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
 
-.tagButton.active {
+.filterButton.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: white;

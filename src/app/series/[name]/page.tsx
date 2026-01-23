@@ -25,10 +25,20 @@ async function getSeriesPosts(name: string) {
 export async function generateMetadata({ params }: SeriesDetailProps) {
   const { name } = await params;
   const decodedName = decodeURIComponent(name);
+  const url = `https://blog.iniru.xyz/series/${name}`;
   
   return {
     title: `${decodedName} Series`,
     description: `${decodedName} 시리즈의 모든 글을 모아보세요.`,
+    openGraph: {
+      title: `${decodedName} Series | INIRU Blog`,
+      description: `${decodedName} 시리즈의 모든 글을 모아보세요.`,
+      url,
+      type: 'website',
+    },
+    alternates: {
+      canonical: url,
+    },
   };
 }
 

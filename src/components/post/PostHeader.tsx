@@ -74,6 +74,7 @@ export function PostHeader({ post }: PostHeaderProps) {
             fill
             className={styles.thumbnailImage}
             priority
+            sizes="(max-width: 1200px) 100vw, 1200px"
           />
         </div>
       )}

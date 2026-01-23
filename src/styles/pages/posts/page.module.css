@@ -23,7 +23,6 @@
 .postsGrid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  grid-auto-rows: 450px;
   gap: 1.5rem;
   margin-top: 2rem;
 }
@@ -80,32 +79,4 @@
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: white;
-}
-
-.skeletonTitle {
-  width: 120px;
-  height: 2rem;
-  background: linear-gradient(90deg, var(--bg-secondary) 0%, var(--bg-tertiary) 50%, var(--bg-secondary) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite ease-in-out;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-}
-
-.skeletonDescription {
-  width: 180px;
-  height: 1rem;
-  background: linear-gradient(90deg, var(--bg-secondary) 0%, var(--bg-tertiary) 50%, var(--bg-secondary) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite ease-in-out;
-  border-radius: 4px;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
 }

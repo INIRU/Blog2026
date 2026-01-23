@@ -6,6 +6,7 @@ import styles from '@/styles/components/post/PostCard.module.css';
 
 interface PostCardProps {
   post: Post;
+  priority?: boolean;
 }
 
 function estimateReadingTime(content: string): number {
@@ -14,7 +15,7 @@ function estimateReadingTime(content: string): number {
   return Math.ceil(words / wordsPerMinute);
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, priority = false }: PostCardProps) {
   const formattedDate = post.published_at
     ? new Date(post.published_at).toLocaleDateString('ko-KR', {
         year: 'numeric',
@@ -33,6 +34,7 @@ export function PostCard({ post }: PostCardProps) {
             src={post.thumbnail_url}
             alt={post.title}
             fill
+            priority={priority}
             className={styles.image}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />

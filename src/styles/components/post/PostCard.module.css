@@ -6,8 +6,6 @@
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s ease;
-  height: 100%;
-  width: 100%;
 }
 
 .card:hover {
@@ -32,23 +30,8 @@
   transform: scale(1.05);
 }
 
-.placeholder {
-  width: 100%;
-  height: 100%;
-  background: var(--bg-tertiary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.placeholder::after {
-  content: '📝';
-  font-size: 2rem;
-  opacity: 0.5;
-}
-
 .content {
-  padding: 1rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -79,7 +62,6 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 2.8em; /* 1.4em * 2 lines */
 }
 
 .excerpt {
@@ -96,17 +78,10 @@
 .meta {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 1rem;
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border-color);
-}
-
-.meta time,
-.meta span {
-  font-size: 0.8125rem;
-  color: var(--text-tertiary);
 }
 
 .date {
@@ -114,26 +89,7 @@
   color: var(--text-tertiary);
 }
 
-.separator {
-  font-size: 0.8125rem;
-  color: var(--text-tertiary);
-}
-
 .views {
   font-size: 0.8125rem;
   color: var(--text-tertiary);
-}
-
-.readingTime {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.8125rem;
-  color: var(--text-tertiary);
-  white-space: nowrap;
-}
-
-.readingTime svg {
-  width: 14px;
-  height: 14px;
 }
