@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HiChevronDown, HiListBullet } from 'react-icons/hi2';
 import Slugger from 'github-slugger';
 import styles from '@/styles/components/post/TableOfContents.module.css';
+import { useToggle } from '@/hooks/useToggle';
 
 interface TocItem {
   id: string;
@@ -20,7 +21,7 @@ interface TableOfContentsProps {
 export function TableOfContents({ content }: TableOfContentsProps) {
   const [headings, setHeadings] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
-  const [isOpen, setIsOpen] = useState(false);
+  const { value: isOpen, toggle, setOff } = useToggle(false);
 
   useEffect(() => {
     const slugger = new Slugger();
@@ -108,7 +109,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     e.preventDefault();
     if (!id) return;
     
-    setIsOpen(false);
+    setOff();
     
     const element = document.getElementById(id);
     if (element) {
@@ -162,7 +163,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       <div className={styles.mobileToc}>
         <button
           className={styles.mobileToggle}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggle}
         >
           <HiListBullet className={styles.mobileIcon} />
           <span className={styles.mobileTitle}>
@@ -184,6 +185,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
+              onClick={setOff}
             >
               <ul className={styles.mobileList}>
                 {headings.map((heading, index) => {

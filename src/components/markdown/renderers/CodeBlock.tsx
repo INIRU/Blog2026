@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState, useEffect, lazy, Suspense } from 'react';
+import { ReactNode, useState, lazy, Suspense } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from 'next-themes';
@@ -9,6 +9,7 @@ import { CodeRunner } from '@/components/markdown/CodeRunner';
 import { LanguageIcon } from '@/components/markdown/LanguageIcon';
 import styles from '@/styles/components/markdown/MarkdownRenderer.module.css';
 import { RUNNABLE_LANGUAGES } from '@/lib/markdown';
+import { useMounted } from '@/hooks/useMounted';
 
 const InteractivePlayground = lazy(() => import('@/components/markdown/InteractivePlayground'));
 
@@ -37,11 +38,7 @@ function CopyButton({ code }: { code: string }) {
 
 export function CodeBlock({ inline, className, children, ...props }: CodeBlockProps) {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   const isDark = mounted ? resolvedTheme === 'dark' : false;
   const codeString = String(children).replace(/\n$/, '');

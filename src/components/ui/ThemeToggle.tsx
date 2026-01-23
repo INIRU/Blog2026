@@ -1,10 +1,10 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiSun, HiMoon } from 'react-icons/hi';
 import styles from '@/styles/components/ui/ThemeToggle.module.css';
+import { useMounted } from '@/hooks/useMounted';
 
 const iconVariants = {
   initial: { scale: 0, rotate: -180, opacity: 0 },
@@ -14,11 +14,7 @@ const iconVariants = {
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   if (!mounted) {
     return <div className={styles.placeholder} />;

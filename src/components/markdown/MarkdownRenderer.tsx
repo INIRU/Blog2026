@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
@@ -14,20 +14,17 @@ import { extractImagesFromMarkdown } from '@/lib/markdown';
 import { CodeBlock } from './renderers/CodeBlock';
 import { CustomImage } from './renderers/CustomImage';
 import { CustomLink } from './renderers/CustomLink';
+import { useMounted } from '@/hooks/useMounted';
 
 interface MarkdownRendererProps {
   content: string;
 }
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const { showToast } = useToast();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEmbedLoad } from '@/hooks/useEmbedLoad';
 import styles from '@/styles/components/markdown/CodeEmbed.module.css';
 
 interface GistEmbedProps {
@@ -10,7 +10,7 @@ interface GistEmbedProps {
 }
 
 export function GistEmbed({ gistId, username, file }: GistEmbedProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { isLoaded, handleLoad } = useEmbedLoad();
   const gistUrl = file
     ? `https://gist.github.com/${username}/${gistId}.js?file=${file}`
     : `https://gist.github.com/${username}/${gistId}.js`;
@@ -33,7 +33,7 @@ export function GistEmbed({ gistId, username, file }: GistEmbedProps) {
             <script src="${gistUrl}"></script>
           </body>`}
         className={styles.gistFrame}
-        onLoad={() => setIsLoaded(true)}
+        onLoad={handleLoad}
         sandbox="allow-scripts allow-same-origin allow-popups"
         title={`GitHub Gist: ${gistId}`}
       />
@@ -46,7 +46,7 @@ interface CodeSandboxEmbedProps {
 }
 
 export function CodeSandboxEmbed({ sandboxId }: CodeSandboxEmbedProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { isLoaded, handleLoad } = useEmbedLoad();
 
   return (
     <div className={styles.embedWrapper}>
@@ -54,7 +54,7 @@ export function CodeSandboxEmbed({ sandboxId }: CodeSandboxEmbedProps) {
       <iframe
         src={`https://codesandbox.io/embed/${sandboxId}?fontsize=14&hidenavigation=1&theme=dark&view=preview`}
         className={styles.sandboxFrame}
-        onLoad={() => setIsLoaded(true)}
+        onLoad={handleLoad}
         allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
         sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
         title={`CodeSandbox: ${sandboxId}`}
@@ -68,7 +68,7 @@ interface StackBlitzEmbedProps {
 }
 
 export function StackBlitzEmbed({ projectId }: StackBlitzEmbedProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { isLoaded, handleLoad } = useEmbedLoad();
 
   return (
     <div className={styles.embedWrapper}>
@@ -76,7 +76,7 @@ export function StackBlitzEmbed({ projectId }: StackBlitzEmbedProps) {
       <iframe
         src={`https://stackblitz.com/edit/${projectId}?embed=1&file=index.js&theme=dark`}
         className={styles.sandboxFrame}
-        onLoad={() => setIsLoaded(true)}
+        onLoad={handleLoad}
         title={`StackBlitz: ${projectId}`}
       />
     </div>
@@ -89,7 +89,7 @@ interface CodePenEmbedProps {
 }
 
 export function CodePenEmbed({ username, penId }: CodePenEmbedProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { isLoaded, handleLoad } = useEmbedLoad();
 
   return (
     <div className={styles.embedWrapper}>
@@ -97,7 +97,7 @@ export function CodePenEmbed({ username, penId }: CodePenEmbedProps) {
       <iframe
         src={`https://codepen.io/${username}/embed/${penId}?default-tab=result&theme-id=dark`}
         className={styles.sandboxFrame}
-        onLoad={() => setIsLoaded(true)}
+        onLoad={handleLoad}
         allowFullScreen
         title={`CodePen: ${penId}`}
       />
