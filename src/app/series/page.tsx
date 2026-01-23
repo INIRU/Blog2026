@@ -1,9 +1,24 @@
+import type { Metadata } from 'next';
 import { createServerClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { HiCollection } from 'react-icons/hi';
 import styles from '@/styles/pages/series/page.module.css';
 
 export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: 'Series',
+  description: '주제별로 연재된 글들을 모아보세요.',
+  openGraph: {
+    title: 'Series | INIRU Blog',
+    description: '주제별로 연재된 글들을 모아보세요.',
+    url: 'https://blog.iniru.xyz/series',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://blog.iniru.xyz/series',
+  },
+};
 
 interface SeriesInfo {
   name: string;
