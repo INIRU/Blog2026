@@ -1,5 +1,6 @@
 import type { Comment } from '@/lib/supabase/database.types';
 import { HiTrash } from 'react-icons/hi';
+import { formatKoDateTime } from '@/lib/post/postUtils';
 import styles from '@/styles/components/comment/CommentItem.module.css';
 
 interface CommentItemProps {
@@ -9,13 +10,7 @@ interface CommentItemProps {
 }
 
 export function CommentItem({ comment, isReply, onDelete }: CommentItemProps) {
-  const formattedDate = new Date(comment.created_at).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const formattedDate = formatKoDateTime(comment.created_at);
 
   return (
     <div className={`${styles.comment} ${isReply ? styles.reply : ''}`}>

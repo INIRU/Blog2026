@@ -11,6 +11,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { LoginForm } from '@/components/admin/LoginForm';
 import { StatsDashboard } from '@/components/admin/StatsDashboard';
 import type { Post } from '@/lib/supabase/database.types';
+import { formatKoDate } from '@/lib/post/postUtils';
 import { HiPlus, HiPencil, HiTrash, HiEye, HiEyeOff, HiExternalLink, HiCalendar, HiChartBar } from 'react-icons/hi';
 import styles from '@/styles/pages/admin/page.module.css';
 import Image from 'next/image';
@@ -219,7 +220,7 @@ export default function AdminPage() {
                     <h3 className={styles.postTitle}>{post.title}</h3>
                     <div className={styles.postMeta}>
                       <span>
-                        <HiCalendar /> {new Date(post.created_at).toLocaleDateString('ko-KR')}
+                        <HiCalendar /> {formatKoDate(post.created_at)}
                       </span>
                       {post.view_count > 0 && (
                         <span>

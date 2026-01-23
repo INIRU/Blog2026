@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { formatKoDate } from '@/lib/post/postUtils';
 import styles from '@/styles/components/post/RelatedPosts.module.css';
 
 interface RelatedPost {
@@ -35,7 +36,7 @@ export function RelatedPosts({ posts }: RelatedPostsProps) {
             <h4 className={styles.postTitle}>{post.title}</h4>
             {post.published_at && (
               <time className={styles.date}>
-                {new Date(post.published_at).toLocaleDateString('ko-KR')}
+                {formatKoDate(post.published_at)}
               </time>
             )}
           </Link>

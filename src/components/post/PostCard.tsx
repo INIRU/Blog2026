@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { HiClock } from 'react-icons/hi2';
 import type { Post } from '@/lib/supabase/database.types';
+import { estimateReadingTime, formatKoDate } from '@/lib/post/postUtils';
 import styles from '@/styles/components/post/PostCard.module.css';
 
 interface PostCardProps {
@@ -9,21 +10,8 @@ interface PostCardProps {
   priority?: boolean;
 }
 
-function estimateReadingTime(content: string): number {
-  const wordsPerMinute = 200;
-  const words = content.trim().split(/\s+/).length;
-  return Math.ceil(words / wordsPerMinute);
-}
-
 export function PostCard({ post, priority = false }: PostCardProps) {
-  const formattedDate = post.published_at
-    ? new Date(post.published_at).toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : '';
-
+  const formattedDate = formatKoDate(post.published_at);
   const readingTime = estimateReadingTime(post.content);
 
   return (
