@@ -111,6 +111,42 @@ export interface Database {
           }
         ];
       };
+      schedules: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          start_date: string;
+          end_date: string;
+          type: string;
+          github_url: string | null;
+          post_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          start_date: string;
+          end_date: string;
+          type?: string;
+          github_url?: string | null;
+          post_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string | null;
+          start_date?: string;
+          end_date?: string;
+          type?: string;
+          github_url?: string | null;
+          post_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -214,3 +250,7 @@ export type PostUpdate = Database['public']['Tables']['posts']['Update'];
 export type Comment = Database['public']['Tables']['comments']['Row'];
 export type CommentInsert = Database['public']['Tables']['comments']['Insert'];
 export type CommentUpdate = Database['public']['Tables']['comments']['Update'];
+
+export type Schedule = Database['public']['Tables']['schedules']['Row'];
+export type ScheduleInsert = Database['public']['Tables']['schedules']['Insert'];
+export type ScheduleUpdate = Database['public']['Tables']['schedules']['Update'];

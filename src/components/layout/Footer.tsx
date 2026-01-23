@@ -25,7 +25,6 @@ export function Footer() {
               <h4 className={styles.linkGroupTitle}>Sitemap</h4>
               <Link href="/posts" className={styles.link}>Posts</Link>
               <Link href="/series" className={styles.link}>Series</Link>
-              <Link href="/calendar" className={styles.link}>Calendar</Link>
               <Link href="/tags" className={styles.link}>Tags</Link>
             </div>
 

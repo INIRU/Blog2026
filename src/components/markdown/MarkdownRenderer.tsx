@@ -83,16 +83,21 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
               ariaHidden: true,
               tabIndex: -1,
             },
-            content: [],
+            content: [
+              {
+                type: 'text',
+                value: '#'
+              }
+            ],
           }]
         ]}
         components={{
           code: CodeBlock,
           
-          h1: ({ children }) => <h1 className={styles.h1}>{children}</h1>,
-          h2: ({ children }) => <h2 className={styles.h2}>{children}</h2>,
-          h3: ({ children }) => <h3 className={styles.h3}>{children}</h3>,
-          h4: ({ children }) => <h4 className={styles.h4}>{children}</h4>,
+          h1: ({ children, id }) => <h1 id={id} className={styles.h1}>{children}</h1>,
+          h2: ({ children, id }) => <h2 id={id} className={styles.h2}>{children}</h2>,
+          h3: ({ children, id }) => <h3 id={id} className={styles.h3}>{children}</h3>,
+          h4: ({ children, id }) => <h4 id={id} className={styles.h4}>{children}</h4>,
           
           p: ({ children }) => <p className={styles.p}>{children}</p>,
           

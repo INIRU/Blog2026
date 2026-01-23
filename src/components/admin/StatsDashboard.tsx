@@ -100,16 +100,25 @@ export function StatsDashboard({ posts }: StatsDashboardProps) {
 
       {topPosts.length > 0 && (
         <motion.div className={styles.topPosts} variants={itemVariants}>
-          <h3 className={styles.sectionTitle}>인기 글 Top 5</h3>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>
+              <HiTrendingUp /> 인기 글 Top 5
+            </h3>
+          </div>
           <div className={styles.topPostsList}>
             {topPosts.map((post, index) => (
               <div key={post.id} className={styles.topPostItem}>
                 <span className={styles.rank}>{index + 1}</span>
                 <div className={styles.topPostInfo}>
                   <span className={styles.topPostTitle}>{post.title}</span>
-                  <span className={styles.topPostStats}>
-                    조회 {post.view_count.toLocaleString()} · 좋아요 {post.like_count}
-                  </span>
+                  <div className={styles.topPostStats}>
+                    <span className={styles.statItem}>
+                      <HiEye /> {post.view_count.toLocaleString()}
+                    </span>
+                    <span className={styles.statItem}>
+                      <HiHeart /> {post.like_count}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}

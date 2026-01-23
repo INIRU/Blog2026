@@ -5,6 +5,7 @@
 }
 
 .h1, .h2, .h3, .h4 {
+  position: relative;
   font-weight: 700;
   line-height: 1.4;
   color: var(--text-primary);
@@ -60,6 +61,15 @@
   padding: 0.5rem 1rem;
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
+  gap: 0.75rem;
+}
+
+.codeHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .language {
@@ -67,6 +77,16 @@
   font-weight: 600;
   text-transform: uppercase;
   color: var(--text-tertiary);
+}
+
+.filename {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .copyButton {
@@ -197,4 +217,42 @@
 
 .tr:hover .td {
   background: var(--bg-secondary);
+}
+
+.anchor {
+  position: absolute;
+  left: -1.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.h1:hover .anchor,
+.h2:hover .anchor,
+.h3:hover .anchor,
+.h4:hover .anchor {
+  opacity: 1;
+}
+
+.anchor:hover {
+  opacity: 1 !important;
+  color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+  .anchor {
+    position: static;
+    display: inline-block;
+    margin-right: 0.5rem;
+    transform: none;
+    opacity: 1;
+    font-size: 1.125rem;
+  }
 }

@@ -11,8 +11,9 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { LoginForm } from '@/components/admin/LoginForm';
 import { StatsDashboard } from '@/components/admin/StatsDashboard';
 import type { Post } from '@/lib/supabase/database.types';
-import { HiPlus, HiPencil, HiTrash, HiEye, HiEyeOff, HiExternalLink } from 'react-icons/hi';
+import { HiPlus, HiPencil, HiTrash, HiEye, HiEyeOff, HiExternalLink, HiCalendar, HiChartBar } from 'react-icons/hi';
 import styles from '@/styles/pages/admin/page.module.css';
+import Image from 'next/image';
 
 const containerVariants = {
   initial: {},
@@ -143,10 +144,10 @@ export default function AdminPage() {
       animate="animate"
     >
       <motion.div className={styles.header} variants={itemVariants}>
-        <div>
+        <div className={styles.headerInfo}>
           <h1 className={styles.title}>글 관리</h1>
           <p className={styles.description}>
-            총 {posts.length}개의 글 (발행 {posts.filter((p) => p.published).length}개)
+            총 {posts.length}개의 글 중 {posts.filter((p) => p.published).length}개가 세상에 공개되었습니다.
           </p>
         </div>
         <div className={styles.headerActions}>
@@ -193,6 +194,20 @@ export default function AdminPage() {
                   variants={listItemVariants}
                   layout
                 >
+                  <div className={styles.postThumbWrapper}>
+                    {post.thumbnail_url ? (
+                      <Image
+                        src={post.thumbnail_url}
+                        alt={post.title}
+                        fill
+                        className={styles.postThumb}
+                      />
+                    ) : (
+                      <div className={styles.postThumbPlaceholder}>
+                        <HiChartBar />
+                      </div>
+                    )}
+                  </div>
                   <div className={styles.postInfo}>
                     <div className={styles.postStatus}>
                       {post.published ? (
@@ -202,10 +217,16 @@ export default function AdminPage() {
                       )}
                     </div>
                     <h3 className={styles.postTitle}>{post.title}</h3>
-                    <p className={styles.postMeta}>
-                      {new Date(post.created_at).toLocaleDateString('ko-KR')}
-                      {post.view_count > 0 && ` · 조회 ${post.view_count}`}
-                    </p>
+                    <div className={styles.postMeta}>
+                      <span>
+                        <HiCalendar /> {new Date(post.created_at).toLocaleDateString('ko-KR')}
+                      </span>
+                      {post.view_count > 0 && (
+                        <span>
+                          <HiChartBar /> {post.view_count.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className={styles.postActions}>
                     <Link

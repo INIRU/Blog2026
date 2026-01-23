@@ -33,8 +33,14 @@ export function TableOfContents({ content }: TableOfContentsProps) {
 
       const items: TocItem[] = Array.from(elements)
         .map((element) => {
-          const text = element.textContent || '';
-          if (!element.id) {
+          const id = element.id || '';
+          
+          const clone = element.cloneNode(true) as HTMLElement;
+          const anchors = clone.querySelectorAll('a[href^="#"]');
+          anchors.forEach(anchor => anchor.remove());
+          const text = clone.textContent?.replace(/^#\s*/, '').trim() || '';
+          
+          if (!element.id && text) {
             element.id = slugger.slug(text);
           }
           
@@ -44,7 +50,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
             level: Number(element.tagName.substring(1)),
           };
         })
-        .filter((item) => item.text.trim() !== '');
+        .filter((item) => item.text.trim() !== '' && item.id);
 
       setHeadings(items);
     };
@@ -94,13 +100,14 @@ export function TableOfContents({ content }: TableOfContentsProps) {
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
+    if (!id) return;
+    
     setIsOpen(false);
     
     const element = document.getElementById(id);
     if (element) {
-      
       const yOffset = -80; 
-      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      const y = element.getBoundingClientRect().top + window.scrollY + yOffset;
       
       window.scrollTo({ top: y, behavior: 'smooth' });
       

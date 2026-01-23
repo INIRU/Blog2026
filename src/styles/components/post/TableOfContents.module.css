@@ -47,3 +47,111 @@
   color: var(--color-primary);
   background: rgba(99, 102, 241, 0.1);
 }
+
+.activeIndicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-primary);
+  border-radius: 2px;
+}
+
+.text {
+  position: relative;
+}
+
+.mobileToc {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .mobileToc {
+    display: block;
+    margin-bottom: 2rem;
+  }
+
+  .mobileToggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mobileToggle:hover {
+    background: var(--bg-tertiary);
+  }
+
+  .mobileIcon {
+    font-size: 1.25rem;
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  .mobileTitle {
+    flex: 1;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobileChevron {
+    font-size: 1.25rem;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  .mobileDropdown {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+  }
+
+  .mobileList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .mobileItem {
+    margin-bottom: 0.125rem;
+  }
+
+  .mobileItem.nested {
+    padding-left: 1rem;
+  }
+
+  .mobileLink {
+    display: block;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+
+  .mobileLink:hover {
+    color: var(--color-primary);
+    background: var(--bg-tertiary);
+  }
+
+  .mobileItem.active .mobileLink {
+    color: var(--color-primary);
+    background: rgba(99, 102, 241, 0.1);
+    font-weight: 500;
+  }
+}
