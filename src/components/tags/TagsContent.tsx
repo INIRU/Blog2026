@@ -53,25 +53,33 @@ export function TagsContent({ tags }: TagsContentProps) {
       animate="animate"
     >
       <motion.div className={styles.header} variants={itemVariants}>
-        <h1 className={styles.title}>Tags</h1>
+        <div className={styles.kicker}>Tags</div>
+        <h1 className={styles.title}>태그</h1>
         <p className={styles.description}>
-          총 {tags.length}개의 태그
+          총 {tags.length}개의 태그를 탐색할 수 있어요.
         </p>
       </motion.div>
 
       {tags.length > 0 ? (
         <motion.div 
-          className={styles.tagCloud}
+          className={styles.grid}
           variants={gridVariants}
         >
           {tags.map(({ tag, count }) => (
             <motion.div key={tag} variants={tagVariants}>
               <Link
                 href={`/tags/${encodeURIComponent(tag)}`}
-                className={styles.tag}
+                className={styles.card}
               >
-                <span className={styles.tagName}>{tag}</span>
-                <span className={styles.tagCount}>{count}</span>
+                <div className={styles.cardHeader}>
+                  <span className={styles.tagName}>{tag}</span>
+                  <div className={styles.iconWrapper}>
+                    <div className={styles.icon} />
+                  </div>
+                </div>
+                <div className={styles.cardFooter}>
+                  <span className={styles.tagCount}>{count} Articles</span>
+                </div>
               </Link>
             </motion.div>
           ))}

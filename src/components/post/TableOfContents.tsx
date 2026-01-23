@@ -10,6 +10,7 @@ interface TocItem {
   id: string;
   text: string;
   level: number;
+  parentId?: string;
 }
 
 interface TableOfContentsProps {
@@ -31,6 +32,8 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       const elements = container.querySelectorAll('h1, h2, h3');
       slugger.reset();
 
+      let lastH2Id = '';
+
       const items: TocItem[] = Array.from(elements)
         .map((element) => {
           const id = element.id || '';
@@ -44,10 +47,17 @@ export function TableOfContents({ content }: TableOfContentsProps) {
             element.id = slugger.slug(text);
           }
           
+          const level = Number(element.tagName.substring(1));
+          
+          if (level === 2) {
+            lastH2Id = element.id;
+          }
+
           return {
             id: element.id,
             text,
-            level: Number(element.tagName.substring(1)),
+            level,
+            parentId: level === 3 ? lastH2Id : undefined,
           };
         })
         .filter((item) => item.text.trim() !== '' && item.id);
@@ -115,35 +125,37 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   if (headings.length === 0) return null;
 
   const activeHeading = headings.find((h) => h.id === activeId);
+  const activeParentId = activeHeading?.level === 3 
+    ? activeHeading.parentId 
+    : (activeHeading?.level === 2 ? activeHeading.id : undefined);
 
   return (
     <>
       <nav className={styles.toc}>
         <h4 className={styles.title}>목차</h4>
         <ul className={styles.list}>
-          {headings.map((heading, index) => (
-            <li
-              key={`${heading.id}-${index}`}
-              className={`${styles.item} ${
-                heading.level === 3 ? styles.nested : ''
-              } ${activeId === heading.id ? styles.active : ''}`}
-            >
-              <a 
-                href={`#${heading.id}`} 
-                className={styles.link}
-                onClick={(e) => handleLinkClick(e, heading.id)}
+          {headings.map((heading, index) => {
+            const isVisible = heading.level !== 3 || heading.parentId === activeParentId;
+
+            if (!isVisible) return null;
+
+            return (
+              <li
+                key={`${heading.id}-${index}`}
+                className={`${styles.item} ${
+                  heading.level === 3 ? styles.nested : ''
+                } ${activeId === heading.id ? styles.active : ''}`}
               >
-                {activeId === heading.id && (
-                  <motion.span
-                    layoutId="activeIndicator"
-                    className={styles.activeIndicator}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  />
-                )}
-                <span className={styles.text}>{heading.text}</span>
-              </a>
-            </li>
-          ))}
+                <a
+                  href={`#${heading.id}`}
+                  className={styles.link}
+                  onClick={(e) => handleLinkClick(e, heading.id)}
+                >
+                  <span className={styles.text}>{heading.text}</span>
+                </a>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 
@@ -174,22 +186,28 @@ export function TableOfContents({ content }: TableOfContentsProps) {
               transition={{ duration: 0.2 }}
             >
               <ul className={styles.mobileList}>
-                {headings.map((heading, index) => (
-                  <li
-                    key={`${heading.id}-${index}`}
-                    className={`${styles.mobileItem} ${
-                      heading.level === 3 ? styles.nested : ''
-                    } ${activeId === heading.id ? styles.active : ''}`}
-                  >
-                    <a
-                      href={`#${heading.id}`}
-                      className={styles.mobileLink}
-                      onClick={(e) => handleLinkClick(e, heading.id)}
+                {headings.map((heading, index) => {
+                  const isVisible = heading.level !== 3 || heading.parentId === activeParentId;
+
+                  if (!isVisible) return null;
+
+                  return (
+                    <li
+                      key={`${heading.id}-${index}`}
+                      className={`${styles.mobileItem} ${
+                        heading.level === 3 ? styles.nested : ''
+                      } ${activeId === heading.id ? styles.active : ''}`}
                     >
-                      {heading.text}
-                    </a>
-                  </li>
-                ))}
+                      <a
+                        href={`#${heading.id}`}
+                        className={styles.mobileLink}
+                        onClick={(e) => handleLinkClick(e, heading.id)}
+                      >
+                        {heading.text}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </motion.div>
           )}

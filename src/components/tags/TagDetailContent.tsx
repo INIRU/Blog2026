@@ -56,19 +56,14 @@ export function TagDetailContent({ tag, posts }: TagDetailContentProps) {
       initial="initial"
       animate="animate"
     >
-      <motion.div variants={itemVariants}>
+      <motion.header className={styles.header} variants={itemVariants}>
         <Link href="/tags" className={styles.backLink}>
           <HiArrowLeft />
           <span>모든 태그</span>
         </Link>
-      </motion.div>
-
-      <motion.div className={styles.header} variants={itemVariants}>
         <h1 className={styles.title}>#{tag}</h1>
-        <p className={styles.description}>
-          {posts.length}개의 글
-        </p>
-      </motion.div>
+        <p className={styles.description}>{posts.length}개의 글</p>
+      </motion.header>
 
       {posts.length > 0 ? (
         <motion.div 

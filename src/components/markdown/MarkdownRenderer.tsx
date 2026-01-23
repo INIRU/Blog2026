@@ -93,6 +93,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
         ]}
         components={{
           code: CodeBlock,
+          pre: ({ children }) => <>{children}</>,
           
           h1: ({ children, id }) => <h1 id={id} className={styles.h1}>{children}</h1>,
           h2: ({ children, id }) => <h2 id={id} className={styles.h2}>{children}</h2>,
