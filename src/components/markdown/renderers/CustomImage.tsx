@@ -2,16 +2,17 @@ import Image from 'next/image';
 import styles from '@/styles/components/markdown/MarkdownRenderer.module.css';
 
 interface CustomImageProps {
-  src?: string;
+  src?: string | Blob;
   alt?: string;
   onClick: (src: string) => void;
   title?: string;
-  width?: number;
-  height?: number;
+  width?: string | number;
+  height?: string | number;
+  [key: string]: unknown;
 }
 
 export function CustomImage({ src, alt, onClick, ...props }: CustomImageProps) {
-  const imgSrc = src || '';
+  const imgSrc = typeof src === 'string' ? src : '';
   
   if (!imgSrc) return null;
   
