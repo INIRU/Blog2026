@@ -2,6 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import Image from "next/image";
 import { useTheme } from "@/lib/theme";
 import { CodeBlock } from "./CodeBlock";
 import type { Components } from "react-markdown";
@@ -291,6 +292,36 @@ export function PostDetail({ content }: PostDetailProps) {
         <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, var(--color-border), transparent)" }} />
       </div>
     ),
+
+    img: ({ src, alt }) => {
+      if (!src || typeof src !== "string") return null;
+      return (
+        <span
+          style={{
+            display: "block",
+            position: "relative",
+            width: "100%",
+            margin: "24px 0",
+            borderRadius: 12,
+            overflow: "hidden",
+            border: "1px solid var(--color-border)",
+          }}
+        >
+          <Image
+            src={src}
+            alt={alt ?? ""}
+            width={1200}
+            height={675}
+            style={{
+              width: "100%",
+              height: "auto",
+              display: "block",
+            }}
+            sizes="(max-width: 768px) 100vw, 800px"
+          />
+        </span>
+      );
+    },
 
     pre: ({ children, ...props }) => (
       <CodeBlock {...props}>{children}</CodeBlock>
