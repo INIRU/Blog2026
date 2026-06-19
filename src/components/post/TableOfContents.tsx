@@ -27,6 +27,7 @@ interface TableOfContentsProps {
 const CONTENT_ID = 'markdown-content';
 const SCROLL_OFFSET = 112;
 const ACTIVE_OFFSET_TOLERANCE = 8;
+const PROGRAMMATIC_SCROLL_TIMEOUT = 1600;
 
 const getHeadingText = (element: Element) => {
   const clone = element.cloneNode(true) as HTMLElement;
@@ -82,6 +83,8 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   const activeIdRef = useRef(activeId);
   const frameRef = useRef<number | null>(null);
   const collectFrameRef = useRef<number | null>(null);
+  const programmaticTargetIdRef = useRef<string | null>(null);
+  const programmaticTargetTimeoutRef = useRef<number | null>(null);
   const { value: isOpen, toggle, setOff } = useToggle(false);
   const mobileListId = useId();
   const shouldReduceMotion = useReducedMotion();
@@ -93,13 +96,24 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     setActiveId(nextActiveId);
   }, []);
 
+  const clearProgrammaticTarget = useCallback((targetId?: string) => {
+    if (targetId && programmaticTargetIdRef.current !== targetId) return;
+
+    programmaticTargetIdRef.current = null;
+    if (programmaticTargetTimeoutRef.current !== null) {
+      window.clearTimeout(programmaticTargetTimeoutRef.current);
+      programmaticTargetTimeoutRef.current = null;
+    }
+  }, []);
+
   const scheduleActiveSync = useCallback(
     (forcedId?: string) => {
       if (frameRef.current !== null) return;
 
       frameRef.current = requestAnimationFrame(() => {
         frameRef.current = null;
-        updateActiveId(forcedId ?? getCurrentActiveId(headings));
+        const lockedTargetId = programmaticTargetIdRef.current;
+        updateActiveId(lockedTargetId ?? forcedId ?? getCurrentActiveId(headings));
       });
     },
     [headings, updateActiveId],
@@ -170,19 +184,39 @@ export function TableOfContents({ content }: TableOfContentsProps) {
 
     const handleScroll = () => scheduleActiveSync();
     const handleResize = () => scheduleActiveSync();
+    const handleScrollEnd = () => {
+      if (!programmaticTargetIdRef.current) return;
+
+      clearProgrammaticTarget();
+      scheduleActiveSync();
+    };
+    const handleManualScrollIntent = () => {
+      if (!programmaticTargetIdRef.current) return;
+
+      clearProgrammaticTarget();
+    };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleResize);
+    window.addEventListener('scrollend', handleScrollEnd);
+    window.addEventListener('wheel', handleManualScrollIntent, { passive: true });
+    window.addEventListener('touchstart', handleManualScrollIntent, { passive: true });
+    window.addEventListener('keydown', handleManualScrollIntent);
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scrollend', handleScrollEnd);
+      window.removeEventListener('wheel', handleManualScrollIntent);
+      window.removeEventListener('touchstart', handleManualScrollIntent);
+      window.removeEventListener('keydown', handleManualScrollIntent);
+      clearProgrammaticTarget();
       if (frameRef.current !== null) {
         cancelAnimationFrame(frameRef.current);
         frameRef.current = null;
       }
     };
-  }, [headings, scheduleActiveSync]);
+  }, [clearProgrammaticTarget, headings, scheduleActiveSync]);
 
   const scrollToHeading = useCallback(
     (id: string) => {
@@ -194,6 +228,14 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       const top = element.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
 
       window.history.pushState(null, '', nextUrl);
+      programmaticTargetIdRef.current = id;
+      if (programmaticTargetTimeoutRef.current !== null) {
+        window.clearTimeout(programmaticTargetTimeoutRef.current);
+      }
+      programmaticTargetTimeoutRef.current = window.setTimeout(() => {
+        clearProgrammaticTarget(id);
+        scheduleActiveSync();
+      }, PROGRAMMATIC_SCROLL_TIMEOUT);
       updateActiveId(id);
       window.scrollTo({
         top: Math.max(0, top),
@@ -205,7 +247,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       }
       element.focus({ preventScroll: true });
     },
-    [updateActiveId],
+    [clearProgrammaticTarget, scheduleActiveSync, updateActiveId],
   );
 
   const handleItemClick = (
