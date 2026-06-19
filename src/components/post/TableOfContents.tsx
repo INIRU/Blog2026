@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useId, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useId, useRef, useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { HiChevronDown, HiListBullet } from 'react-icons/hi2';
 import Slugger from 'github-slugger';
 import styles from '@/styles/components/post/TableOfContents.module.css';
@@ -21,8 +21,10 @@ interface TableOfContentsProps {
 export function TableOfContents({ content }: TableOfContentsProps) {
   const [headings, setHeadings] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
+  const activeIdRef = useRef('');
   const { value: isOpen, toggle, setOff } = useToggle(false);
   const mobileListId = useId();
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const slugger = new Slugger();
@@ -85,23 +87,52 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   }, [content]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: '-100px 0px -66%' }
-    );
+    activeIdRef.current = activeId;
+  }, [activeId]);
 
-    headings.forEach(({ id }) => {
-      const element = document.getElementById(id);
-      if (element) observer.observe(element);
-    });
+  useEffect(() => {
+    if (headings.length === 0) return;
 
-    return () => observer.disconnect();
+    const headingElements = headings
+      .map(({ id }) => document.getElementById(id))
+      .filter((element): element is HTMLElement => Boolean(element));
+
+    if (headingElements.length === 0) return;
+
+    let frameId = 0;
+
+    const updateActiveHeading = () => {
+      const activationLine = window.scrollY + 128;
+      let nextActiveId = headingElements[0].id;
+
+      for (const element of headingElements) {
+        if (element.offsetTop <= activationLine) {
+          nextActiveId = element.id;
+        } else {
+          break;
+        }
+      }
+
+      if (activeIdRef.current !== nextActiveId) {
+        activeIdRef.current = nextActiveId;
+        setActiveId(nextActiveId);
+      }
+    };
+
+    const scheduleUpdate = () => {
+      cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(updateActiveHeading);
+    };
+
+    scheduleUpdate();
+    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('resize', scheduleUpdate);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('scroll', scheduleUpdate);
+      window.removeEventListener('resize', scheduleUpdate);
+    };
   }, [headings]);
 
   const handleLinkClick = (id: string) => {
@@ -114,9 +145,18 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   if (headings.length === 0) return null;
 
   const activeHeading = headings.find((h) => h.id === activeId);
+  const activeIndex = headings.findIndex((h) => h.id === activeId);
   const activeParentId = activeHeading?.level === 3 
     ? activeHeading.parentId 
     : (activeHeading?.level === 2 ? activeHeading.id : undefined);
+
+  const isHeadingVisible = (heading: TocItem, index: number) => {
+    if (heading.level !== 3) return true;
+    if (heading.parentId === activeParentId) return true;
+    if (activeIndex === -1) return false;
+
+    return Math.abs(index - activeIndex) <= 1;
+  };
 
   return (
     <>
@@ -124,7 +164,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
         <h4 className={styles.title}>목차</h4>
         <ul className={styles.list}>
           {headings.map((heading, index) => {
-            const isVisible = heading.level !== 3 || heading.parentId === activeParentId;
+            const isVisible = isHeadingVisible(heading, index);
 
             if (!isVisible) return null;
 
@@ -150,20 +190,21 @@ export function TableOfContents({ content }: TableOfContentsProps) {
 
       <div className={styles.mobileToc}>
         <button
+          type="button"
           className={styles.mobileToggle}
           onClick={toggle}
           aria-expanded={isOpen}
           aria-controls={mobileListId}
         >
-          <HiListBullet className={styles.mobileIcon} />
+          <HiListBullet className={styles.mobileIcon} aria-hidden="true" />
           <span className={styles.mobileTitle}>
             {activeHeading?.text || '목차'}
           </span>
           <motion.span
             animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
           >
-            <HiChevronDown className={styles.mobileChevron} />
+            <HiChevronDown className={styles.mobileChevron} aria-hidden="true" />
           </motion.span>
         </button>
 
@@ -172,15 +213,15 @@ export function TableOfContents({ content }: TableOfContentsProps) {
             <motion.div
               className={styles.mobileDropdown}
               id={mobileListId}
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -10 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
               onClick={setOff}
             >
               <ul className={styles.mobileList}>
                 {headings.map((heading, index) => {
-                  const isVisible = heading.level !== 3 || heading.parentId === activeParentId;
+                  const isVisible = isHeadingVisible(heading, index);
 
                   if (!isVisible) return null;
 
