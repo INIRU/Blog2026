@@ -1,0 +1,391 @@
+.cropperOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 2rem;
+}
+
+.cropperContainer {
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+:global(html.dark) .cropperContainer {
+  background: #1e293b;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+:global(html.light) .cropperContainer {
+  background: white;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.cropperHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid;
+}
+
+:global(html.dark) .cropperHeader {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(30, 41, 59, 0.8);
+}
+
+:global(html.light) .cropperHeader {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.cropperTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+:global(html.dark) .cropperTitle {
+  color: white;
+}
+
+:global(html.light) .cropperTitle {
+  color: #1e293b;
+}
+
+.closeButton {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.5rem;
+}
+
+:global(html.dark) .closeButton {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+:global(html.dark) .closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:global(html.light) .closeButton {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1e293b;
+}
+
+:global(html.light) .closeButton:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.cropperArea {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  background: #000;
+}
+
+.cropperControls {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+:global(html.dark) .cropperControls {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+:global(html.light) .cropperControls {
+  background: rgba(248, 250, 252, 0.5);
+}
+
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.controlGroup label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+:global(html.dark) .controlGroup label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:global(html.light) .controlGroup label {
+  color: #475569;
+}
+
+.sliderContainer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sliderContainer span {
+  font-size: 1.25rem;
+  font-weight: 600;
+  width: 1.5rem;
+  text-align: center;
+}
+
+:global(html.dark) .sliderContainer span {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+:global(html.light) .sliderContainer span {
+  color: #64748b;
+}
+
+.slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+:global(html.dark) .slider {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:global(html.light) .slider {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+:global(html.dark) .slider::-webkit-slider-thumb {
+  background: #60a5fa;
+  box-shadow: 0 2px 6px rgba(96, 165, 250, 0.4);
+}
+
+:global(html.light) .slider::-webkit-slider-thumb {
+  background: #38bdf8;
+  box-shadow: 0 2px 6px rgba(56, 189, 248, 0.4);
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+:global(html.dark) .slider::-moz-range-thumb {
+  background: #60a5fa;
+  box-shadow: 0 2px 6px rgba(96, 165, 250, 0.4);
+}
+
+:global(html.light) .slider::-moz-range-thumb {
+  background: #38bdf8;
+  box-shadow: 0 2px 6px rgba(56, 189, 248, 0.4);
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+.aspectButtons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.aspectButtons button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-family: monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+:global(html.dark) .aspectButtons button {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:global(html.dark) .aspectButtons button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(96, 165, 250, 0.5);
+}
+
+:global(html.dark) .aspectButtons button.active {
+  background: rgba(96, 165, 250, 0.2);
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
+:global(html.light) .aspectButtons button {
+  background: white;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #475569;
+}
+
+:global(html.light) .aspectButtons button:hover {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+:global(html.light) .aspectButtons button.active {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #0ea5e9;
+}
+
+.cropperFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid;
+}
+
+:global(html.dark) .cropperFooter {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(30, 41, 59, 0.8);
+}
+
+:global(html.light) .cropperFooter {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.cancelBtn,
+.cropBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelBtn {
+  border: 2px solid;
+}
+
+:global(html.dark) .cancelBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+:global(html.dark) .cancelBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:global(html.light) .cancelBtn {
+  background: white;
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #475569;
+}
+
+:global(html.light) .cancelBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.cropBtn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.cropBtn:hover {
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.cropBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .cropperOverlay {
+    padding: 0;
+  }
+
+  .cropperContainer {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .cropperArea {
+    height: 300px;
+  }
+
+  .cropperHeader,
+  .cropperFooter {
+    padding: 1rem;
+  }
+
+  .cropperControls {
+    padding: 1rem;
+  }
+
+  .cropperFooter {
+    flex-direction: column;
+  }
+
+  .cancelBtn,
+  .cropBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}

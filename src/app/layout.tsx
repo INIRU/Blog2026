@@ -1,18 +1,77 @@
-import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
-import { ThemeProvider } from "@/lib/theme";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Providers } from './providers';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import './globals.css';
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-  weight: ["400", "500", "600", "700", "800", "900"],
-});
+const SITE_URL = 'https://blog.iniru.xyz';
+const SITE_NAME = 'INIRU Blog';
+const SITE_DESCRIPTION = 'INIRU의 개발 블로그입니다. 웹 개발, 프로그래밍, 기술에 대한 글을 공유합니다.';
 
 export const metadata: Metadata = {
-  title: "INIRU Blog",
-  description: "개발 블로그 by INIRU — Full-Stack Developer",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  keywords: ['블로그', '개발', '프로그래밍', '웹 개발', '기술', 'React', 'Next.js', 'TypeScript', 'JavaScript'],
+  authors: [{ name: 'INIRU', url: SITE_URL }],
+  creator: 'INIRU',
+  publisher: 'INIRU',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  alternates: {
+    canonical: SITE_URL,
+    types: {
+      'application/rss+xml': `${SITE_URL}/feed.xml`,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: `${SITE_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: SITE_NAME,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    images: [`${SITE_URL}/og-image.png`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: '',
+    yandex: '',
+    other: {
+      'naver-site-verification': '',
+    },
+  },
 };
 
 export default function RootLayout({
@@ -20,21 +79,49 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    author: {
+      '@type': 'Person',
+      name: 'INIRU',
+      url: 'https://github.com/INIRU',
+    },
+    publisher: {
+      '@type': 'Person',
+      name: 'INIRU',
+    },
+  };
+
   return (
-    <html lang="ko" className={outfit.variable} suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)})()`,
-          }}
-        />
         <link
-          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
           rel="stylesheet"
+          as="style"
+          crossOrigin="anonymous"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
+        />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" sizes="any" />
+        <link rel="manifest" href="/manifest.json" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className="antialiased">
+        <Providers>
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </Providers>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

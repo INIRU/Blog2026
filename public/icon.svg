@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="INIRU Blog">
+  <rect width="64" height="64" rx="14" fill="#111827"/>
+  <path d="M14 14h8v36h-8zM29 14h7l14 22.4V14h7v36h-7L36 27.7V50h-7z" fill="#f8fafc"/>
+  <path d="M14 50h43v4H14z" fill="#6366f1"/>
+</svg>

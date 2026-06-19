@@ -1,0 +1,95 @@
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 0%,
+    var(--bg-tertiary) 50%,
+    var(--bg-secondary) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.postCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+}
+
+.thumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tags {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.postList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .postList {
+    grid-template-columns: 1fr;
+  }
+}
+
+.postDetail {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.detailTags {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.detailMeta {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

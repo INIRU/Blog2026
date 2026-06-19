@@ -1,42 +1,60 @@
-"use client";
+'use client';
 
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "@/lib/theme";
+import { useTheme } from 'next-themes';
+import { motion, AnimatePresence } from 'framer-motion';
+import { HiSun, HiMoon } from 'react-icons/hi';
+import styles from '@/styles/components/ui/ThemeToggle.module.css';
+import { useMounted } from '@/hooks/useMounted';
+
+const iconVariants = {
+  initial: { scale: 0, rotate: -180, opacity: 0 },
+  animate: { scale: 1, rotate: 0, opacity: 1 },
+  exit: { scale: 0, rotate: 180, opacity: 0 },
+};
 
 export function ThemeToggle() {
-  const { isDark, toggle } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const mounted = useMounted();
+
+  if (!mounted) {
+    return <div className={styles.placeholder} />;
+  }
+
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <button
-      onClick={toggle}
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: 32,
-        height: 32,
-        borderRadius: 9999,
-        border: "none",
-        background: "transparent",
-        color: isDark ? "rgba(148,163,184,0.8)" : "rgba(100,116,139,0.8)",
-        cursor: "pointer",
-        transition: "color 0.2s, background 0.2s",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.color = isDark ? "#e2e8f0" : "#0f172a";
-        e.currentTarget.style.background = isDark
-          ? "rgba(255,255,255,0.06)"
-          : "rgba(0,0,0,0.05)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.color = isDark
-          ? "rgba(148,163,184,0.8)"
-          : "rgba(100,116,139,0.8)";
-        e.currentTarget.style.background = "transparent";
-      }}
+      className={styles.toggle}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      {isDark ? <Sun size={14} /> : <Moon size={14} />}
+      <AnimatePresence mode="wait" initial={false}>
+        {isDark ? (
+          <motion.span
+            key="sun"
+            variants={iconVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.2 }}
+            className={styles.iconWrapper}
+          >
+            <HiSun />
+          </motion.span>
+        ) : (
+          <motion.span
+            key="moon"
+            variants={iconVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.2 }}
+            className={styles.iconWrapper}
+          >
+            <HiMoon />
+          </motion.span>
+        )}
+      </AnimatePresence>
     </button>
   );
 }
