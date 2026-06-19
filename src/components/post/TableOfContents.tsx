@@ -2,6 +2,7 @@
 
 import {
   type MouseEvent,
+  type PointerEvent,
   useCallback,
   useEffect,
   useId,
@@ -28,6 +29,8 @@ const CONTENT_ID = 'markdown-content';
 const SCROLL_OFFSET = 112;
 const ACTIVE_OFFSET_TOLERANCE = 8;
 const PROGRAMMATIC_SCROLL_TIMEOUT = 1600;
+const TOC_CENTER_BAND_START = 0.35;
+const TOC_CENTER_BAND_END = 0.65;
 
 const getHeadingText = (element: Element) => {
   const clone = element.cloneNode(true) as HTMLElement;
@@ -82,9 +85,13 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState('');
   const activeIdRef = useRef(activeId);
   const frameRef = useRef<number | null>(null);
+  const centerFrameRef = useRef<number | null>(null);
   const collectFrameRef = useRef<number | null>(null);
   const programmaticTargetIdRef = useRef<string | null>(null);
   const programmaticTargetTimeoutRef = useRef<number | null>(null);
+  const tocPanelRef = useRef<HTMLDivElement | null>(null);
+  const activeLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const pointerActivatedIdRef = useRef<string | null>(null);
   const { value: isOpen, toggle, setOff } = useToggle(false);
   const mobileListId = useId();
   const shouldReduceMotion = useReducedMotion();
@@ -105,6 +112,43 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       programmaticTargetTimeoutRef.current = null;
     }
   }, []);
+
+  const centerActiveItemInPanel = useCallback(
+    ({ immediate = false }: { immediate?: boolean } = {}) => {
+      if (centerFrameRef.current !== null) {
+        cancelAnimationFrame(centerFrameRef.current);
+      }
+
+      centerFrameRef.current = requestAnimationFrame(() => {
+        centerFrameRef.current = null;
+        const panel = tocPanelRef.current;
+        const activeLink = activeLinkRef.current;
+
+        if (!panel || !activeLink || panel.scrollHeight <= panel.clientHeight) return;
+
+        const panelRect = panel.getBoundingClientRect();
+        const activeRect = activeLink.getBoundingClientRect();
+        const activeCenter = activeRect.top + activeRect.height / 2;
+        const middleBandTop = panelRect.top + panelRect.height * TOC_CENTER_BAND_START;
+        const middleBandBottom = panelRect.top + panelRect.height * TOC_CENTER_BAND_END;
+
+        if (activeCenter >= middleBandTop && activeCenter <= middleBandBottom) return;
+
+        const panelCenter = panelRect.top + panelRect.height / 2;
+        const maxScrollTop = panel.scrollHeight - panel.clientHeight;
+        const nextScrollTop = Math.min(
+          maxScrollTop,
+          Math.max(0, panel.scrollTop + activeCenter - panelCenter),
+        );
+
+        panel.scrollTo({
+          top: nextScrollTop,
+          behavior: immediate || shouldReduceMotion ? 'auto' : 'smooth',
+        });
+      });
+    },
+    [shouldReduceMotion],
+  );
 
   const scheduleActiveSync = useCallback(
     (forcedId?: string) => {
@@ -215,8 +259,24 @@ export function TableOfContents({ content }: TableOfContentsProps) {
         cancelAnimationFrame(frameRef.current);
         frameRef.current = null;
       }
+      if (centerFrameRef.current !== null) {
+        cancelAnimationFrame(centerFrameRef.current);
+        centerFrameRef.current = null;
+      }
     };
   }, [clearProgrammaticTarget, headings, scheduleActiveSync]);
+
+  useEffect(() => {
+    if (!activeId || headings.length === 0) return;
+
+    centerActiveItemInPanel();
+  }, [activeId, centerActiveItemInPanel, headings.length]);
+
+  useEffect(() => {
+    if (!isOpen || !activeId) return;
+
+    centerActiveItemInPanel({ immediate: true });
+  }, [activeId, centerActiveItemInPanel, isOpen]);
 
   const scrollToHeading = useCallback(
     (id: string) => {
@@ -246,18 +306,42 @@ export function TableOfContents({ content }: TableOfContentsProps) {
         element.setAttribute('tabindex', '-1');
       }
       element.focus({ preventScroll: true });
+      centerActiveItemInPanel();
     },
-    [clearProgrammaticTarget, scheduleActiveSync, updateActiveId],
+    [centerActiveItemInPanel, clearProgrammaticTarget, scheduleActiveSync, updateActiveId],
   );
 
-  const handleItemClick = (
-    event: MouseEvent<HTMLAnchorElement>,
+  const activateHeading = useCallback(
+    (id: string, closeMobile = false) => {
+      if (closeMobile) setOff();
+      scrollToHeading(id);
+    },
+    [scrollToHeading, setOff],
+  );
+
+  const handleItemPointerDown = (
+    event: PointerEvent<HTMLAnchorElement>,
     id: string,
     closeMobile = false,
   ) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+
     event.preventDefault();
-    if (closeMobile) setOff();
-    scrollToHeading(id);
+    pointerActivatedIdRef.current = id;
+    activateHeading(id, closeMobile);
+  };
+
+  const handleItemClick = (event: MouseEvent<HTMLAnchorElement>, id: string, closeMobile = false) => {
+    event.preventDefault();
+
+    if (pointerActivatedIdRef.current === id) {
+      pointerActivatedIdRef.current = null;
+      return;
+    }
+
+    activateHeading(id, closeMobile);
   };
 
   if (headings.length === 0) return null;
@@ -276,9 +360,11 @@ export function TableOfContents({ content }: TableOfContentsProps) {
         return (
           <li key={heading.id} className={`${styles.item} ${levelClass}`}>
             <a
+              ref={isActive ? activeLinkRef : undefined}
               href={getHeadingHref(heading.id)}
               className={`${styles.link} ${isActive ? styles.active : ''}`}
               aria-current={isActive ? 'location' : undefined}
+              onPointerDown={(event) => handleItemPointerDown(event, heading.id, isOpen)}
               onClick={(event) => handleItemClick(event, heading.id, isOpen)}
             >
               {heading.text}
@@ -310,7 +396,11 @@ export function TableOfContents({ content }: TableOfContentsProps) {
         </button>
       </div>
 
-      <div className={`${styles.tocPanel} ${isOpen ? styles.tocPanelOpen : ''}`} id={mobileListId}>
+      <div
+        ref={tocPanelRef}
+        className={`${styles.tocPanel} ${isOpen ? styles.tocPanelOpen : ''}`}
+        id={mobileListId}
+      >
         <h4 className={styles.title}>목차</h4>
         <div className={styles.tocBody}>{renderItems()}</div>
       </div>

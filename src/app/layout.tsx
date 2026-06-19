@@ -105,7 +105,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
         />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" sizes="any" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="any" />
         <link rel="manifest" href="/manifest.json" />
         <script
           type="application/ld+json"
