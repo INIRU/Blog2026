@@ -83,6 +83,7 @@ const getHeadingHref = (id: string) => `#${encodeURIComponent(id)}`;
 export function TableOfContents({ content }: TableOfContentsProps) {
   const [headings, setHeadings] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState('');
+  const [isHydrated, setIsHydrated] = useState(false);
   const activeIdRef = useRef(activeId);
   const frameRef = useRef<number | null>(null);
   const centerFrameRef = useRef<number | null>(null);
@@ -91,7 +92,9 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   const programmaticTargetTimeoutRef = useRef<number | null>(null);
   const tocPanelRef = useRef<HTMLDivElement | null>(null);
   const activeLinkRef = useRef<HTMLAnchorElement | null>(null);
-  const pointerActivatedIdRef = useRef<string | null>(null);
+  const pendingPointerIdRef = useRef<string | null>(null);
+  const clickActivationFrameRef = useRef<number | null>(null);
+  const clickActivationTimerRef = useRef<number | null>(null);
   const { value: isOpen, toggle, setOff } = useToggle(false);
   const mobileListId = useId();
   const shouldReduceMotion = useReducedMotion();
@@ -166,6 +169,14 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   useEffect(() => {
     activeIdRef.current = activeId;
   }, [activeId]);
+
+  useEffect(() => {
+    const hydrationTimer = window.setTimeout(() => {
+      setIsHydrated(true);
+    }, 0);
+
+    return () => window.clearTimeout(hydrationTimer);
+  }, []);
 
   useEffect(() => {
     const collectHeadings = () => {
@@ -319,29 +330,59 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     [scrollToHeading, setOff],
   );
 
-  const handleItemPointerDown = (
-    event: PointerEvent<HTMLAnchorElement>,
-    id: string,
-    closeMobile = false,
-  ) => {
+  const scheduleHeadingActivation = useCallback(
+    (id: string, closeMobile = false) => {
+      if (clickActivationFrameRef.current !== null) {
+        cancelAnimationFrame(clickActivationFrameRef.current);
+      }
+      if (clickActivationTimerRef.current !== null) {
+        window.clearTimeout(clickActivationTimerRef.current);
+      }
+
+      clickActivationFrameRef.current = requestAnimationFrame(() => {
+        clickActivationFrameRef.current = null;
+        clickActivationTimerRef.current = window.setTimeout(() => {
+          clickActivationTimerRef.current = null;
+          activateHeading(id, closeMobile);
+        }, 0);
+      });
+    },
+    [activateHeading],
+  );
+
+  useEffect(
+    () => () => {
+      if (clickActivationFrameRef.current !== null) {
+        cancelAnimationFrame(clickActivationFrameRef.current);
+      }
+      if (clickActivationTimerRef.current !== null) {
+        window.clearTimeout(clickActivationTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const handleItemPointerDown = (event: PointerEvent<HTMLAnchorElement>, id: string) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
       return;
     }
 
     event.preventDefault();
-    pointerActivatedIdRef.current = id;
-    activateHeading(id, closeMobile);
+    pendingPointerIdRef.current = id;
   };
 
   const handleItemClick = (event: MouseEvent<HTMLAnchorElement>, id: string, closeMobile = false) => {
-    event.preventDefault();
-
-    if (pointerActivatedIdRef.current === id) {
-      pointerActivatedIdRef.current = null;
+    if (
+      isHydrated &&
+      (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+    ) {
       return;
     }
 
-    activateHeading(id, closeMobile);
+    event.preventDefault();
+    const targetId = pendingPointerIdRef.current === id ? pendingPointerIdRef.current : id;
+    pendingPointerIdRef.current = null;
+    scheduleHeadingActivation(targetId, closeMobile);
   };
 
   if (headings.length === 0) return null;
@@ -361,10 +402,10 @@ export function TableOfContents({ content }: TableOfContentsProps) {
           <li key={heading.id} className={`${styles.item} ${levelClass}`}>
             <a
               ref={isActive ? activeLinkRef : undefined}
-              href={getHeadingHref(heading.id)}
+              href={isHydrated ? getHeadingHref(heading.id) : undefined}
               className={`${styles.link} ${isActive ? styles.active : ''}`}
               aria-current={isActive ? 'location' : undefined}
-              onPointerDown={(event) => handleItemPointerDown(event, heading.id, isOpen)}
+              onPointerDown={(event) => handleItemPointerDown(event, heading.id)}
               onClick={(event) => handleItemClick(event, heading.id, isOpen)}
             >
               {heading.text}
