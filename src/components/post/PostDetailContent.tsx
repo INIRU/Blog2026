@@ -78,10 +78,6 @@ export function PostDetailContent({ post, relatedPosts, prevPost, nextPost, seri
           />
         )}
 
-        <div className={styles.mobileTocSlot}>
-          <TableOfContents content={post.content} />
-        </div>
-        
         <motion.div 
           className={styles.contentWrapper}
           variants={itemVariants}

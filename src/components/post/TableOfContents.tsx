@@ -1,15 +1,14 @@
 'use client';
 
 import {
+  type MouseEvent,
   useCallback,
   useEffect,
   useId,
-  useMemo,
   useRef,
   useState,
-  type MouseEvent as ReactMouseEvent,
 } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { HiChevronDown, HiListBullet } from 'react-icons/hi2';
 import Slugger from 'github-slugger';
 import styles from '@/styles/components/post/TableOfContents.module.css';
@@ -19,16 +18,6 @@ interface TocItem {
   id: string;
   text: string;
   level: 1 | 2 | 3;
-}
-
-interface TocParent {
-  item: TocItem;
-  children: TocItem[];
-}
-
-interface ActiveState {
-  activeId: string;
-  activeParentId: string;
 }
 
 interface TableOfContentsProps {
@@ -76,34 +65,6 @@ const getCurrentActiveId = (headings: TocItem[]) => {
   return activeId;
 };
 
-const findParentId = (items: TocParent[], id: string) => {
-  for (const parent of items) {
-    if (parent.item.id === id) return parent.item.id;
-    if (parent.children.some((child) => child.id === id)) return parent.item.id;
-  }
-
-  return id;
-};
-
-const buildTocTree = (headings: TocItem[]) => {
-  const parents: TocParent[] = [];
-  let currentParent: TocParent | null = null;
-
-  headings.forEach((heading) => {
-    if (heading.level === 1 || heading.level === 2) {
-      currentParent = { item: heading, children: [] };
-      parents.push(currentParent);
-      return;
-    }
-
-    if (currentParent) {
-      currentParent.children.push(heading);
-    }
-  });
-
-  return parents;
-};
-
 const areHeadingsEqual = (current: TocItem[], next: TocItem[]) =>
   current.length === next.length &&
   current.every(
@@ -113,41 +74,24 @@ const areHeadingsEqual = (current: TocItem[], next: TocItem[]) =>
       item.level === next[index].level,
   );
 
+const getHeadingHref = (id: string) => `#${encodeURIComponent(id)}`;
+
 export function TableOfContents({ content }: TableOfContentsProps) {
   const [headings, setHeadings] = useState<TocItem[]>([]);
-  const [activeState, setActiveState] = useState<ActiveState>({
-    activeId: '',
-    activeParentId: '',
-  });
-  const activeStateRef = useRef(activeState);
+  const [activeId, setActiveId] = useState('');
+  const activeIdRef = useRef(activeId);
   const frameRef = useRef<number | null>(null);
   const collectFrameRef = useRef<number | null>(null);
   const { value: isOpen, toggle, setOff } = useToggle(false);
   const mobileListId = useId();
   const shouldReduceMotion = useReducedMotion();
 
-  const tocItems = useMemo(() => buildTocTree(headings), [headings]);
+  const updateActiveId = useCallback((nextActiveId: string) => {
+    if (!nextActiveId || activeIdRef.current === nextActiveId) return;
 
-  const updateActiveState = useCallback(
-    (activeId: string) => {
-      if (!activeId) return;
-
-      const activeParentId = findParentId(tocItems, activeId);
-      const nextState = { activeId, activeParentId };
-      const currentState = activeStateRef.current;
-
-      if (
-        currentState.activeId === nextState.activeId &&
-        currentState.activeParentId === nextState.activeParentId
-      ) {
-        return;
-      }
-
-      activeStateRef.current = nextState;
-      setActiveState(nextState);
-    },
-    [tocItems],
-  );
+    activeIdRef.current = nextActiveId;
+    setActiveId(nextActiveId);
+  }, []);
 
   const scheduleActiveSync = useCallback(
     (forcedId?: string) => {
@@ -155,15 +99,15 @@ export function TableOfContents({ content }: TableOfContentsProps) {
 
       frameRef.current = requestAnimationFrame(() => {
         frameRef.current = null;
-        updateActiveState(forcedId ?? getCurrentActiveId(headings));
+        updateActiveId(forcedId ?? getCurrentActiveId(headings));
       });
     },
-    [headings, updateActiveState],
+    [headings, updateActiveId],
   );
 
   useEffect(() => {
-    activeStateRef.current = activeState;
-  }, [activeState]);
+    activeIdRef.current = activeId;
+  }, [activeId]);
 
   useEffect(() => {
     const collectHeadings = () => {
@@ -220,7 +164,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   }, [content]);
 
   useEffect(() => {
-    if (headings.length === 0 || tocItems.length === 0) return;
+    if (headings.length === 0) return;
 
     scheduleActiveSync();
 
@@ -238,7 +182,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
         frameRef.current = null;
       }
     };
-  }, [headings, scheduleActiveSync, tocItems.length]);
+  }, [headings, scheduleActiveSync]);
 
   const scrollToHeading = useCallback(
     (id: string) => {
@@ -250,84 +194,53 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       const top = element.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
 
       window.history.pushState(null, '', nextUrl);
-      updateActiveState(id);
+      updateActiveId(id);
       window.scrollTo({
         top: Math.max(0, top),
         behavior: prefersReducedMotion() ? 'auto' : 'smooth',
       });
+
+      if (!element.hasAttribute('tabindex')) {
+        element.setAttribute('tabindex', '-1');
+      }
+      element.focus({ preventScroll: true });
     },
-    [updateActiveState],
+    [updateActiveId],
   );
 
-  const handleLinkClick = (
-    event: ReactMouseEvent<HTMLAnchorElement>,
+  const handleItemClick = (
+    event: MouseEvent<HTMLAnchorElement>,
     id: string,
     closeMobile = false,
   ) => {
-    if (!id) return;
-
     event.preventDefault();
     if (closeMobile) setOff();
     scrollToHeading(id);
   };
 
-  if (tocItems.length === 0) return null;
+  if (headings.length === 0) return null;
 
-  const renderItems = (isMobile = false) => (
-    <ul className={isMobile ? styles.mobileList : styles.list}>
-      {tocItems.map((parent) => {
-        const hasChildren = parent.children.length > 0;
-        const isExpanded = activeState.activeParentId === parent.item.id;
-        const isActiveParent = activeState.activeId === parent.item.id;
-        const childrenTransition = shouldReduceMotion
-          ? { duration: 0 }
-          : { duration: 0.22, ease: [0.22, 1, 0.36, 1] };
+  const renderItems = () => (
+    <ul className={styles.list}>
+      {headings.map((heading) => {
+        const isActive = activeId === heading.id;
+        const levelClass =
+          heading.level === 1
+            ? styles.level1
+            : heading.level === 2
+              ? styles.level2
+              : styles.level3;
 
         return (
-          <li key={parent.item.id} className={styles.item}>
+          <li key={heading.id} className={`${styles.item} ${levelClass}`}>
             <a
-              href={`#${parent.item.id}`}
-              className={`${isMobile ? styles.mobileLink : styles.link} ${
-                isActiveParent ? styles.active : ''
-              }`}
-              aria-current={isActiveParent ? 'location' : undefined}
-              aria-expanded={hasChildren ? isExpanded : undefined}
-              onClick={(event) => handleLinkClick(event, parent.item.id, isMobile)}
+              href={getHeadingHref(heading.id)}
+              className={`${styles.link} ${isActive ? styles.active : ''}`}
+              aria-current={isActive ? 'location' : undefined}
+              onClick={(event) => handleItemClick(event, heading.id, isOpen)}
             >
-              {parent.item.text}
+              {heading.text}
             </a>
-
-            <AnimatePresence initial={false}>
-              {hasChildren && isExpanded && (
-                <motion.ul
-                  key={`${parent.item.id}-children`}
-                  className={isMobile ? styles.mobileChildren : styles.children}
-                  initial={{ height: 0, opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
-                  animate={{ height: 'auto', opacity: 1, y: 0 }}
-                  exit={{ height: 0, opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
-                  transition={childrenTransition}
-                >
-                  {parent.children.map((child) => {
-                    const isActiveChild = activeState.activeId === child.id;
-
-                    return (
-                      <li key={child.id} className={styles.childItem}>
-                        <a
-                          href={`#${child.id}`}
-                          className={`${isMobile ? styles.mobileChildLink : styles.childLink} ${
-                            isActiveChild ? styles.active : ''
-                          }`}
-                          aria-current={isActiveChild ? 'location' : undefined}
-                          onClick={(event) => handleLinkClick(event, child.id, isMobile)}
-                        >
-                          {child.text}
-                        </a>
-                      </li>
-                    );
-                  })}
-                </motion.ul>
-              )}
-            </AnimatePresence>
           </li>
         );
       })}
@@ -335,12 +248,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   );
 
   return (
-    <>
-      <nav className={styles.toc} aria-label="글 목차">
-        <h4 className={styles.title}>목차</h4>
-        <div className={styles.tocBody}>{renderItems()}</div>
-      </nav>
-
+    <nav className={styles.toc} aria-label="글 목차">
       <div className={styles.mobileToc}>
         <button
           type="button"
@@ -358,23 +266,12 @@ export function TableOfContents({ content }: TableOfContentsProps) {
             <HiChevronDown className={styles.mobileChevron} aria-hidden="true" />
           </motion.span>
         </button>
-
-        <AnimatePresence>
-          {isOpen && (
-            <motion.nav
-              className={styles.mobileDropdown}
-              id={mobileListId}
-              aria-label="글 목차"
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -6 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.16 }}
-            >
-              {renderItems(true)}
-            </motion.nav>
-          )}
-        </AnimatePresence>
       </div>
-    </>
+
+      <div className={`${styles.tocPanel} ${isOpen ? styles.tocPanelOpen : ''}`} id={mobileListId}>
+        <h4 className={styles.title}>목차</h4>
+        <div className={styles.tocBody}>{renderItems()}</div>
+      </div>
+    </nav>
   );
 }

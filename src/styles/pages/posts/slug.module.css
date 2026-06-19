@@ -17,10 +17,6 @@
   position: relative;
 }
 
-.mobileTocSlot {
-  display: none;
-}
-
 .sidebar {
   position: sticky;
   top: 6.5rem;
@@ -40,15 +36,20 @@
   }
 
   .contentWrapper {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
   }
 
   .sidebar {
-    display: none;
+    position: static;
+    order: 0;
+    width: 100%;
   }
 
-  .mobileTocSlot {
-    display: block;
+  .content {
+    width: 100%;
+    max-width: 100%;
   }
 }
 
