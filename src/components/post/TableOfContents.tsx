@@ -29,8 +29,20 @@ const CONTENT_ID = 'markdown-content';
 const SCROLL_OFFSET = 112;
 const ACTIVE_OFFSET_TOLERANCE = 8;
 const PROGRAMMATIC_SCROLL_TIMEOUT = 1600;
+const PROGRAMMATIC_ALIGNMENT_TOLERANCE = 24;
+const PROGRAMMATIC_ALIGNMENT_RETRY_DELAYS = [80, 180, 360, 720, 900] as const;
 const TOC_CENTER_BAND_START = 0.35;
 const TOC_CENTER_BAND_END = 0.65;
+const handledTocClickEvents = new WeakSet<globalThis.Event>();
+
+const isPrimaryUnmodifiedClick = (event: globalThis.MouseEvent) =>
+  event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+
+const getTocLinkFromEvent = (event: globalThis.Event) => {
+  if (!(event.target instanceof Element)) return null;
+
+  return event.target.closest<HTMLAnchorElement>('a[data-toc-link="true"][data-toc-id]');
+};
 
 const getHeadingText = (element: Element) => {
   const clone = element.cloneNode(true) as HTMLElement;
@@ -80,6 +92,12 @@ const areHeadingsEqual = (current: TocItem[], next: TocItem[]) =>
 
 const getHeadingHref = (id: string) => `#${encodeURIComponent(id)}`;
 
+const getHeadingOffsetDistance = (element: HTMLElement) =>
+  element.getBoundingClientRect().top - SCROLL_OFFSET;
+
+const getHeadingScrollTop = (element: HTMLElement) =>
+  Math.max(0, element.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET);
+
 export function TableOfContents({ content }: TableOfContentsProps) {
   const [headings, setHeadings] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState('');
@@ -90,6 +108,9 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   const collectFrameRef = useRef<number | null>(null);
   const programmaticTargetIdRef = useRef<string | null>(null);
   const programmaticTargetTimeoutRef = useRef<number | null>(null);
+  const programmaticAlignmentFrameRef = useRef<number | null>(null);
+  const programmaticAlignmentTimerRefs = useRef<number[]>([]);
+  const programmaticAlignmentRetryDeadlineRef = useRef(0);
   const tocPanelRef = useRef<HTMLDivElement | null>(null);
   const activeLinkRef = useRef<HTMLAnchorElement | null>(null);
   const pendingPointerIdRef = useRef<string | null>(null);
@@ -106,6 +127,19 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     setActiveId(nextActiveId);
   }, []);
 
+  const clearAlignmentRetries = useCallback(() => {
+    if (programmaticAlignmentFrameRef.current !== null) {
+      cancelAnimationFrame(programmaticAlignmentFrameRef.current);
+      programmaticAlignmentFrameRef.current = null;
+    }
+
+    programmaticAlignmentTimerRefs.current.forEach((timerId) => {
+      window.clearTimeout(timerId);
+    });
+    programmaticAlignmentTimerRefs.current = [];
+    programmaticAlignmentRetryDeadlineRef.current = 0;
+  }, []);
+
   const clearProgrammaticTarget = useCallback((targetId?: string) => {
     if (targetId && programmaticTargetIdRef.current !== targetId) return;
 
@@ -114,7 +148,56 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       window.clearTimeout(programmaticTargetTimeoutRef.current);
       programmaticTargetTimeoutRef.current = null;
     }
-  }, []);
+    clearAlignmentRetries();
+  }, [clearAlignmentRetries]);
+
+  const alignToHeading = useCallback(
+    (targetId: string, behavior: ScrollBehavior, { force = false }: { force?: boolean } = {}) => {
+      const element = document.getElementById(targetId);
+      if (!(element instanceof HTMLElement)) return;
+
+      if (
+        !force &&
+        Math.abs(getHeadingOffsetDistance(element)) <= PROGRAMMATIC_ALIGNMENT_TOLERANCE
+      ) {
+        return;
+      }
+
+      window.scrollTo({
+        top: getHeadingScrollTop(element),
+        behavior,
+      });
+    },
+    [],
+  );
+
+  const scheduleAlignmentRetries = useCallback(
+    (targetId: string) => {
+      clearAlignmentRetries();
+      programmaticAlignmentRetryDeadlineRef.current =
+        window.performance.now() +
+        PROGRAMMATIC_ALIGNMENT_RETRY_DELAYS[PROGRAMMATIC_ALIGNMENT_RETRY_DELAYS.length - 1];
+
+      const alignTarget = () => {
+        if (programmaticAlignmentFrameRef.current !== null) {
+          cancelAnimationFrame(programmaticAlignmentFrameRef.current);
+        }
+
+        programmaticAlignmentFrameRef.current = requestAnimationFrame(() => {
+          programmaticAlignmentFrameRef.current = null;
+          if (programmaticTargetIdRef.current !== targetId) return;
+
+          alignToHeading(targetId, 'auto');
+        });
+      };
+
+      alignTarget();
+      programmaticAlignmentTimerRefs.current = PROGRAMMATIC_ALIGNMENT_RETRY_DELAYS.map((delay) =>
+        window.setTimeout(alignTarget, delay),
+      );
+    },
+    [alignToHeading, clearAlignmentRetries],
+  );
 
   const centerActiveItemInPanel = useCallback(
     ({ immediate = false }: { immediate?: boolean } = {}) => {
@@ -240,7 +323,17 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     const handleScroll = () => scheduleActiveSync();
     const handleResize = () => scheduleActiveSync();
     const handleScrollEnd = () => {
-      if (!programmaticTargetIdRef.current) return;
+      const targetId = programmaticTargetIdRef.current;
+      if (!targetId) return;
+      if (window.performance.now() < programmaticAlignmentRetryDeadlineRef.current) return;
+
+      const element = document.getElementById(targetId);
+      if (
+        element instanceof HTMLElement &&
+        Math.abs(getHeadingOffsetDistance(element)) > PROGRAMMATIC_ALIGNMENT_TOLERANCE
+      ) {
+        return;
+      }
 
       clearProgrammaticTarget();
       scheduleActiveSync();
@@ -296,7 +389,6 @@ export function TableOfContents({ content }: TableOfContentsProps) {
 
       const nextHash = `#${encodeURIComponent(id)}`;
       const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
-      const top = element.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
 
       window.history.pushState(null, '', nextUrl);
       programmaticTargetIdRef.current = id;
@@ -308,10 +400,8 @@ export function TableOfContents({ content }: TableOfContentsProps) {
         scheduleActiveSync();
       }, PROGRAMMATIC_SCROLL_TIMEOUT);
       updateActiveId(id);
-      window.scrollTo({
-        top: Math.max(0, top),
-        behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-      });
+      alignToHeading(id, prefersReducedMotion() ? 'auto' : 'smooth', { force: true });
+      scheduleAlignmentRetries(id);
 
       if (!element.hasAttribute('tabindex')) {
         element.setAttribute('tabindex', '-1');
@@ -319,7 +409,14 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       element.focus({ preventScroll: true });
       centerActiveItemInPanel();
     },
-    [centerActiveItemInPanel, clearProgrammaticTarget, scheduleActiveSync, updateActiveId],
+    [
+      centerActiveItemInPanel,
+      alignToHeading,
+      clearProgrammaticTarget,
+      scheduleActiveSync,
+      scheduleAlignmentRetries,
+      updateActiveId,
+    ],
   );
 
   const activateHeading = useCallback(
@@ -362,6 +459,27 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     [],
   );
 
+  useEffect(() => {
+    const handleDocumentClick = (event: globalThis.MouseEvent) => {
+      if (!isPrimaryUnmodifiedClick(event)) return;
+
+      const tocLink = getTocLinkFromEvent(event);
+      const targetId = tocLink?.dataset.tocId;
+      if (!targetId || !tocPanelRef.current?.contains(tocLink)) return;
+
+      event.preventDefault();
+      handledTocClickEvents.add(event);
+      pendingPointerIdRef.current = null;
+      scheduleHeadingActivation(targetId, isOpen);
+    };
+
+    document.addEventListener('click', handleDocumentClick, true);
+
+    return () => {
+      document.removeEventListener('click', handleDocumentClick, true);
+    };
+  }, [isOpen, scheduleHeadingActivation]);
+
   const handleItemPointerDown = (event: PointerEvent<HTMLAnchorElement>, id: string) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
       return;
@@ -372,6 +490,11 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   };
 
   const handleItemClick = (event: MouseEvent<HTMLAnchorElement>, id: string, closeMobile = false) => {
+    if (handledTocClickEvents.has(event.nativeEvent)) {
+      event.preventDefault();
+      return;
+    }
+
     if (
       isHydrated &&
       (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
@@ -405,6 +528,8 @@ export function TableOfContents({ content }: TableOfContentsProps) {
               href={isHydrated ? getHeadingHref(heading.id) : undefined}
               className={`${styles.link} ${isActive ? styles.active : ''}`}
               aria-current={isActive ? 'location' : undefined}
+              data-toc-link="true"
+              data-toc-id={heading.id}
               onPointerDown={(event) => handleItemPointerDown(event, heading.id)}
               onClick={(event) => handleItemClick(event, heading.id, isOpen)}
             >
